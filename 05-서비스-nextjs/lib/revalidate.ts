@@ -12,3 +12,9 @@ export function revalidateInsight(slug: string) {
   revalidatePath('/insight')
   revalidatePath('/sitemap.xml')
 }
+
+/** 빌더 프로필 변경 시 — 공개 프로필·"검증된 빌더" 카드(/work) 둘 다 갱신. */
+export function revalidateBuilder() {
+  revalidatePath('/builder')
+  revalidatePath('/work')
+}

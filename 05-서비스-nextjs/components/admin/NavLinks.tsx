@@ -12,6 +12,7 @@ export default function NavLinks({ isAdmin }: { isAdmin: boolean }) {
     { href: '/admin/works', label: 'Work' },
     ...(isAdmin ? [{ href: '/admin/content', label: 'Content' }] : []),
     ...(isAdmin ? [{ href: '/admin/faq', label: 'FAQ' }] : []),
+    ...(isAdmin ? [{ href: '/admin/builders', label: 'Builders' }] : []),
     ...(isAdmin ? [{ href: '/admin/approvals', label: '승인 대기' }] : []),
   ]
   return (
