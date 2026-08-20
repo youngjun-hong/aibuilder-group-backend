@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, type CSSProperties } from 'react'
 import { useRibbonFlow, useDock } from '@/components/fx'
 import type { Channel, Video } from '@/lib/data/content'
@@ -90,7 +91,7 @@ export default function ContentView({
                   /* 피처드 (관리자 지정 1건, 없으면 최신 영상 — lib/data/content.ts 폴백) */
                   <a className="vcell feat" href="#" data-yt data-video-id={featured.youtubeId} data-utm="featured">
                     {/* 피처드는 이 화면의 LCP 요소다 — 지연 로드하지 않고 우선순위를 올린다 */}
-                    <img className="vimg" src={`https://i.ytimg.com/vi/${featured.youtubeId}/hqdefault.jpg`} alt="" fetchPriority="high" decoding="async" />
+                    <Image className="vimg" src={`https://i.ytimg.com/vi/${featured.youtubeId}/hqdefault.jpg`} alt="" fill sizes="(max-width: 900px) 100vw, 60vw" priority />
                     <div className="vshade"></div>
                     {featured.channelName && <span className="chbadge">{featured.channelName}</span>}
                     {featured.durationLabel && <span className="dur" style={durStyle}>{featured.durationLabel}</span>}
@@ -103,7 +104,7 @@ export default function ContentView({
                   {grid.map(v => (
                     <a className="vcell" href="#" data-yt data-video-id={v.youtubeId} data-utm="grid" key={v.id}>
                       {/* 그리드는 전부 첫 화면 아래 — 외부(i.ytimg.com) 이미지를 선점하지 않게 */}
-                      <img className="vimg" src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" />
+                      <Image className="vimg" src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt="" fill sizes="(max-width: 900px) 50vw, 300px" />
                       <div className="vshade"></div>
                       {v.channelName && <span className="chbadge">{v.channelName}</span>}
                       {v.durationLabel && <span className="dur" style={durStyle}>{v.durationLabel}</span>}

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect } from 'react'
 import type { WorkDetail } from '@/lib/types'
 
@@ -34,7 +35,7 @@ export default function WorkDetailView({ work }: { work: WorkDetail }) {
       {work.heroUrl && (
         <div className="wrap wd-cover">
           <div className="slot mask">
-            <img src={work.heroUrl} alt={`${work.title} 화면`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <Image src={work.heroUrl} alt={`${work.title} 화면`} fill sizes="100vw" priority style={{ objectFit: 'cover' }} />
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect } from 'react'
 import { useRibbonFlow, useDock } from '@/components/fx'
 import type { Category, InsightCard } from '@/lib/types'
@@ -73,7 +74,11 @@ export default function InsightView({ articles, categories }: { articles: Insigh
           <div data-list>
             {articles.map(a => (
               <Link className="arow" href={`/insight/${a.slug}`} data-c={a.categorySlug ?? ''} key={a.slug}>
-                <img className="athumb" src={a.thumbUrl ?? ''} alt="" loading="lazy" />
+                <div className="athumb" style={{ position: 'relative', overflow: 'hidden' }}>
+                  {a.thumbUrl && (
+                    <Image src={a.thumbUrl} alt="" fill sizes="(max-width: 900px) 100vw, 640px" style={{ objectFit: 'cover' }} loading="lazy" />
+                  )}
+                </div>
                 <div>
                   <h3>{a.title}</h3>
                   <span className="cat">{a.categoryName}</span>

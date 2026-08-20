@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect } from 'react'
 import { useRibbonFlow, useDock, useCountUp } from '@/components/fx'
 import type { BuilderCard, WorkCard } from '@/lib/types'
@@ -148,7 +149,7 @@ export default function WorkView({ projects, builders }: { projects: WorkCard[];
               {projects.map(p => (
                 <Link className="wcard" href={`/work/${p.slug}`} data-c={p.categorySlug ?? ''} data-cursor="VIEW →" key={p.slug}>
                   <div className="slot mask">
-                    <img className="cover" src={p.thumbUrl ?? ''} alt={`${p.title} 화면`} loading="lazy" />
+                    {p.thumbUrl && <Image className="cover" src={p.thumbUrl} alt={`${p.title} 화면`} fill sizes="(max-width: 900px) 50vw, 400px" loading="lazy" />}
                   </div>
                   <div className="meta">
                     <div className="mrow"><span className="tag">{p.tagLabel}</span><span className="yr num">{p.year}</span></div>
@@ -248,7 +249,7 @@ export default function WorkView({ projects, builders }: { projects: WorkCard[];
                 return (
                   <Link className={boxClass} href={`/builder?b=${b.slug}`} data-cursor="PROFILE →" data-track="builder_click" data-slug={b.slug} key={b.slug}>
                     <div className="slot mask">
-                      <img src={b.avatarUrl ?? ''} alt={`${b.name} 프로필 사진`} />
+                      {b.avatarUrl && <Image src={b.avatarUrl} alt={`${b.name} 프로필 사진`} fill sizes="(max-width: 900px) 33vw, 300px" />}
                       {badge && <span className={badge.cls}>{badge.label}</span>}
                       {/* 수행 건수는 이 카드에서 유일한 실적 근거다 — 알약으로 세워 먼저 읽히게 한다 */}
                       <div className="ct"><span className="cnt">수행 <b className="num">{b.doneCount}</b>건</span><span className="go">Profile →</span></div>

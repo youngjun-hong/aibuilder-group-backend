@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, type CSSProperties } from 'react'
 import { useRibbonFlow, useReplayOnView, useAccordion } from '@/components/fx'
 import FaqList from '@/components/FaqList'
@@ -623,7 +624,9 @@ export default function HomeView({
                 썼다. /admin/insights 에서 편집하면 그대로 반영된다. */}
             {previewInsights.map(a => (
               <Link className="irow" href={`/insight/${a.slug}`} key={a.slug}>
-                <img className="ithumb" src={a.thumbUrl ?? ''} alt="" loading="lazy" decoding="async" />
+                <div className="ithumb" style={{ position: 'relative', overflow: 'hidden' }}>
+                  {a.thumbUrl && <Image src={a.thumbUrl} alt="" fill sizes="268px" style={{ objectFit: 'cover' }} loading="lazy" />}
+                </div>
                 <span className="t">{a.title}</span>
                 <span className="meta"><span className="tag">{a.categoryName}</span><span className="d num">{a.publishedLabel}</span></span>
               </Link>
@@ -655,7 +658,7 @@ export default function HomeView({
             <div className="vgrid">
               {previewFeatured && (
                 <div className="vcell slot" data-expand data-track="youtube_outbound" data-slug="featured">
-                  <img className="vimg" src={`https://i.ytimg.com/vi/${previewFeatured.youtubeId}/hqdefault.jpg`} alt={previewFeatured.title} loading="lazy" />
+                  <Image className="vimg" src={`https://i.ytimg.com/vi/${previewFeatured.youtubeId}/hqdefault.jpg`} alt={previewFeatured.title} fill sizes="(max-width: 900px) 100vw, 60vw" />
                   <div className="vshade"></div>
                   {previewFeatured.durationLabel && <span className="dur num">{previewFeatured.durationLabel}</span>}
                   <div className="play"><i>▶</i></div>
@@ -665,7 +668,7 @@ export default function HomeView({
               <div className="vside">
                 {previewSideVideos.map(v => (
                   <div className="vcell slot" data-expand style={{ aspectRatio: '16/8' }} key={v.id}>
-                    <img className="vimg" src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt={v.title} loading="lazy" />
+                    <Image className="vimg" src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt={v.title} fill sizes="(max-width: 900px) 50vw, 280px" />
                     <div className="vshade"></div>
                     {v.durationLabel && <span className="dur num">{v.durationLabel}</span>}
                     <div className="play"><i>▶</i></div>

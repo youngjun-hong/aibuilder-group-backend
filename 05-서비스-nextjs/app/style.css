@@ -8,8 +8,9 @@
    · 푸터 6그룹 (진단 04, toktokhan)
    · Work 카드 커서 추종 "VIEW →" (cuberto — 1곳만)
    ============================================================ */
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+/* 폰트는 여기서 안 불러온다 — CSS @import 는 프리로드 스캐너가 못 찾아 렌더가 늦어진다.
+   Pretendard 는 app/layout.tsx 의 <head> 에 <link> 로 직접, JetBrains Mono 는 next/font
+   (같은 파일의 --font-jbm 변수)로 자체 호스팅한다. 폰트 패밀리명·폴백 체인은 그대로. */
 
 :root {
   --paper:   #F4F1EA;
@@ -28,7 +29,7 @@
      떨어져 본문과 따로 놀았다 — 전 페이지 32곳에서 발생.
      폴백 순서에 본문 서체를 끼워 넣으면 라틴·숫자는 JetBrains Mono, 한글은 Pretendard 로
      간다. 글자 단위로 적용되므로 규칙 하나로 32곳이 한 번에 맞는다. */
-  --mono: "JetBrains Mono", "Pretendard Variable", Pretendard, ui-monospace, Menlo, monospace;
+  --mono: var(--font-jbm), "Pretendard Variable", Pretendard, ui-monospace, Menlo, monospace;
   --maxw: 1280px;
   --d-line:  rgba(244,241,234,.14);
   --d-line2: rgba(244,241,234,.08);
