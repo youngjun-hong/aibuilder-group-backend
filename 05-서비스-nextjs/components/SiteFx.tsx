@@ -6,18 +6,23 @@ import { useEffect } from 'react'
 declare global {
   interface Window {
     track?: (name: string, params?: Record<string, unknown>) => void
+    gtag?: (...args: unknown[]) => void
   }
 }
 
 /* assets/app.js 공통 스크립트 이식 —
-   리빌/마스크 IntersectionObserver · GA4 스텁
+   리빌/마스크 IntersectionObserver · GA4 이벤트 배선
    pathname이 바뀔 때마다 새 페이지의 .rv/.mask를 다시 관찰한다 */
 export default function SiteFx() {
   const pathname = usePathname()
 
-  /* GA4 이벤트 스텁 — [data-track] 클릭 위임 */
+  /* [data-track] 클릭 위임 → GA4 이벤트. GoogleAnalytics.tsx 가 측정 ID로 gtag.js 를 로드했을
+     때만 실제 전송되고, 미설정 상태(개발 중 등)에는 콘솔에만 찍는다 — 둘 다 화면은 안 죽는다. */
   useEffect(() => {
-    window.track = (name, params) => console.log('[GA4]', name, params || {})
+    window.track = (name, params) => {
+      if (window.gtag) window.gtag('event', name, params || {})
+      else console.log('[GA4]', name, params || {})
+    }
     const onClick = (e: MouseEvent) => {
       const el = (e.target as Element | null)?.closest<HTMLElement>('[data-track]')
       if (!el) return
