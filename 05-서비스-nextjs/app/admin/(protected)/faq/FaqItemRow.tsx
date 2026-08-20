@@ -20,6 +20,7 @@ export default function FaqItemRow({ item }: { item: AdminFaqItem }) {
         {item.showOnHome && <span className="admin-badge admin-badge--published" style={{ marginLeft: 8 }}>홈 노출</span>}
       </td>
       <td className="actions">
+        <Link className="admin-btn admin-btn--ghost" href={`/admin/faq/${item.id}`}>수정</Link>
         <button
           type="button"
           className="admin-btn admin-btn--ghost"

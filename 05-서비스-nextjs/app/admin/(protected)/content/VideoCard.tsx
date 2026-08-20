@@ -23,6 +23,7 @@ export default function VideoCard({ video }: { video: AdminVideoRow }) {
         </div>
       </Link>
       <div className="admin-vcell__row">
+        <Link className="admin-btn admin-btn--ghost" href={`/admin/content/${video.id}`}>수정</Link>
         <button
           type="button"
           className="admin-btn admin-btn--ghost"

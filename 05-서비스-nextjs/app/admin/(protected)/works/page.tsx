@@ -60,6 +60,7 @@ export default async function AdminWorksPage({
               <td><span className={`admin-badge admin-badge--${r.status}`}>{STATUS_LABEL[r.status]}</span></td>
               <td>{new Date(r.updatedAt).toLocaleDateString('ko-KR')}</td>
               <td className="actions">
+                <Link className="admin-btn admin-btn--ghost" href={`/admin/works/${r.id}`}>수정</Link>
                 {builder.role === 'admin' && <DeleteWorkButton id={r.id} title={r.title} />}
               </td>
             </tr>
