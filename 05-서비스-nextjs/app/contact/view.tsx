@@ -1,32 +1,41 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { PLUUG_FORM_URL, pluugUrl } from '@/app/_integrations'
+import { submitContactInquiry } from './actions'
+import type { ContactFormState } from './actions'
 
-export default function ContactView() {
+export default function ContactView({ pluugApiConfigured }: { pluugApiConfigured: boolean }) {
   /* pluug 폼 주소는 클라이언트에서만 만든다 — 유입 utm_source 를 location 에서 읽기 때문에
-     서버 렌더 결과와 달라져 하이드레이션이 어긋난다. 마운트 후에 채운다. */
+     서버 렌더 결과와 달라져 하이드레이션이 어긋난다. 마운트 후에 채운다.
+     (pluugApiConfigured 가 꺼져 있고 PLUUG_FORM_URL 만 있을 때의 구 iframe 임베드 경로에서만 쓴다.) */
   const [formSrc, setFormSrc] = useState('')
   useEffect(() => { setFormSrc(pluugUrl('contact_page')) }, [])
 
-  /* 필 라디오 토글 */
+  /* pluug Open API 로 직접 제출하는 네이티브 폼 — 성공하면 서버 액션이 /submit 으로
+     보낸다(전환 측정 성립 조건, 기존 iframe 경로와 동일한 착지점). */
+  const [state, formAction, pending] = useActionState<ContactFormState, FormData>(submitContactInquiry, { error: null })
+
+  /* 필 라디오 토글 — 클릭한 버튼의 텍스트를 같은 그룹의 hidden input 에 실어 폼 제출에 포함시킨다. */
   useEffect(() => {
-    document.querySelectorAll('[data-pills]').forEach(group => {
-      group.querySelectorAll('.pill').forEach(p => {
+    document.querySelectorAll<HTMLElement>('[data-pills]').forEach(group => {
+      const hidden = group.querySelector<HTMLInputElement>('input[type="hidden"]')
+      group.querySelectorAll<HTMLElement>('.pill').forEach(p => {
         p.addEventListener('click', () => {
           group.querySelectorAll('.pill').forEach(x => x.classList.remove('on'))
           p.classList.add('on')
+          if (hidden) hidden.value = p.textContent ?? ''
         })
       })
     })
   }, [])
 
-  /* 제출 → pluug "제출 후 이동 링크" = /submit (전환 측정 성립 조건) */
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    window.location.href = '/submit?src=pluug'
-  }
+  /* 유입 utm_source — pluugUrl() 이 iframe 주소에 붙이던 것과 같은 값을 네이티브 폼 제출에도 싣는다. */
+  useEffect(() => {
+    const input = document.querySelector<HTMLInputElement>('input[name="utm_source"]')
+    if (input) input.value = new URLSearchParams(location.search).get('utm_source') ?? ''
+  }, [])
 
   return (
     <main id="main">
@@ -73,11 +82,59 @@ export default function ContactView() {
           </div>
 
           {/* 우측 — 폼.
-              pluug 주소가 설정돼 있으면 실제 폼을 얹는다. 문의 데이터는 우리 DB 로 오지 않고
-              pluug 가 받는다 (README §절대 규칙).
-              주소가 없으면 아래 목업 폼이 그대로 남는다 — 키 없이도 화면이 죽지 않아야 한다.
-              ⚠ pluug 쪽 '제출 후 이동 링크'를 이 사이트의 /submit 으로 맞춰야 전환 측정이 성립한다. */}
-          {PLUUG_FORM_URL ? (
+              pluug Open API 로 의뢰(문의)를 직접 생성한다(app/contact/actions.ts) — 문의 데이터는
+              우리 DB 로 오지 않고 pluug 가 받는다(README §절대 규칙 유지, 저장 경로만 iframe 임베드에서
+              API 호출로 바뀜). API 키가 아직 없으면 같은 폼이 그대로 뜨고, 제출 시 서버 액션이
+              "아직 연결되지 않았다"는 안내만 보여준다 — 폼이 죽지 않는다.
+              PLUUG_FORM_URL 만 있고 API 키는 없는 과거 설정에서만 구 iframe 임베드로 대체한다. */}
+          {pluugApiConfigured || !PLUUG_FORM_URL ? (
+          <form className="c-form" data-form action={formAction}>
+            <input type="hidden" name="utm_source" value="" />
+            <div className="f-2col">
+              <div className="f-row"><label>회사 / 담당자명 <span className="req">*</span></label>
+                <input name="name" required placeholder="회사명 · 성함" disabled={pending} /></div>
+              <div className="f-row"><label>연락처 <span className="req">*</span></label>
+                <input name="phone" required type="tel" placeholder="010-0000-0000" disabled={pending} /></div>
+            </div>
+            <div className="f-row"><label>이메일 <span className="req">*</span></label>
+              <input name="email" type="email" required placeholder="you@company.com" disabled={pending} /></div>
+
+            <div className="f-group"><label>프로젝트 유형 <span className="opt-t">선택</span></label>
+              <div className="pills" data-pills>
+                <input type="hidden" name="project_type" defaultValue="랜딩 · 웹사이트" />
+                <button type="button" className="pill on">랜딩 · 웹사이트</button>
+                <button type="button" className="pill">SaaS · 플랫폼</button>
+                <button type="button" className="pill">AI 서비스</button>
+                <button type="button" className="pill">모바일 앱</button>
+                <button type="button" className="pill">기타</button>
+              </div>
+            </div>
+            <div className="f-group"><label>예산 규모 <span className="opt-t">선택 — 미정이어도 괜찮아요</span></label>
+              <div className="pills" data-pills>
+                <input type="hidden" name="budget" defaultValue="미정" />
+                <button type="button" className="pill on">미정</button>
+                <button type="button" className="pill">~1,000만</button>
+                <button type="button" className="pill">1,000만~3,000만</button>
+                <button type="button" className="pill">3,000만 이상</button>
+              </div>
+            </div>
+
+            <div className="f-row"><label>프로젝트 내용 <span className="req">*</span></label>
+              <textarea name="content" required disabled={pending} placeholder="예) 예약 관리가 되는 학원용 웹서비스를 만들고 싶어요. 지금은 엑셀로 관리 중이고, 10월 오픈이 목표예요."></textarea>
+              <p className="hint">만들고 싶은 것 · 현재 상황 · 희망 일정 — 이 세 가지면 충분합니다.</p>
+            </div>
+
+            <label className="agree"><input type="checkbox" required />
+              <span>개인정보 수집·이용에 동의합니다. <Link href="/privacy">전문 보기</Link></span></label>
+
+            {state.error && <p className="hint" style={{ color: 'var(--ink)', fontWeight: 700 }}>{state.error}</p>}
+
+            <button className="btn btn--lime" type="submit" disabled={pending}>
+              {pending ? '보내는 중…' : <>문의 보내기 <span className="arr">→</span></>}
+            </button>
+            <p className="after-note">제출하면 <b>하루 안에</b> 회신드려요 · 광고성 연락은 하지 않습니다</p>
+          </form>
+          ) : (
             <div className="c-form c-form--embed">
               {formSrc && (
                 <iframe
@@ -92,46 +149,6 @@ export default function ContactView() {
                 하루 안에 회신드려요
               </p>
             </div>
-          ) : (
-          <form className="c-form" data-form onSubmit={onSubmit}>
-            <div className="f-2col">
-              <div className="f-row"><label>회사 / 담당자명 <span className="req">*</span></label>
-                <input required placeholder="회사명 · 성함" /></div>
-              <div className="f-row"><label>연락처 <span className="req">*</span></label>
-                <input required type="tel" placeholder="010-0000-0000" /></div>
-            </div>
-            <div className="f-row"><label>이메일 <span className="req">*</span></label>
-              <input type="email" required placeholder="you@company.com" /></div>
-
-            <div className="f-group"><label>프로젝트 유형 <span className="opt-t">선택</span></label>
-              <div className="pills" data-pills>
-                <button type="button" className="pill on">랜딩 · 웹사이트</button>
-                <button type="button" className="pill">SaaS · 플랫폼</button>
-                <button type="button" className="pill">AI 서비스</button>
-                <button type="button" className="pill">모바일 앱</button>
-                <button type="button" className="pill">기타</button>
-              </div>
-            </div>
-            <div className="f-group"><label>예산 규모 <span className="opt-t">선택 — 미정이어도 괜찮아요</span></label>
-              <div className="pills" data-pills>
-                <button type="button" className="pill on">미정</button>
-                <button type="button" className="pill">~1,000만</button>
-                <button type="button" className="pill">1,000만~3,000만</button>
-                <button type="button" className="pill">3,000만 이상</button>
-              </div>
-            </div>
-
-            <div className="f-row"><label>프로젝트 내용 <span className="req">*</span></label>
-              <textarea required placeholder="예) 예약 관리가 되는 학원용 웹서비스를 만들고 싶어요. 지금은 엑셀로 관리 중이고, 10월 오픈이 목표예요."></textarea>
-              <p className="hint">만들고 싶은 것 · 현재 상황 · 희망 일정 — 이 세 가지면 충분합니다.</p>
-            </div>
-
-            <label className="agree"><input type="checkbox" required />
-              <span>개인정보 수집·이용에 동의합니다. <Link href="/privacy">전문 보기</Link></span></label>
-
-            <button className="btn btn--lime" type="submit">문의 보내기 <span className="arr">→</span></button>
-            <p className="after-note">제출하면 <b>하루 안에</b> 회신드려요 · 광고성 연락은 하지 않습니다</p>
-          </form>
           )}
         </div>
       </div>
