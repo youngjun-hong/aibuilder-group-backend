@@ -9,8 +9,9 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
       /* 내부 제작 문서. 페이지 metadata 에도 noindex 를 걸어 뒀지만,
-         크롤 자체를 막아 두면 색인 후보에도 오르지 않는다. */
-      disallow: ['/image-guide'],
+         크롤 자체를 막아 두면 색인 후보에도 오르지 않는다.
+         /admin 은 관리자 전용 — FR-A00-02, 페이지 metadata 의 noindex 와 이중 방어. */
+      disallow: ['/image-guide', '/admin'],
     },
     sitemap: new URL('/sitemap.xml', SITE_URL).toString(),
   }

@@ -35,6 +35,11 @@ export default function Gnb() {
     return () => document.body.classList.remove('no-scroll')
   }, [open])
 
+  /* /admin/* 는 layout.tsx 가 중첩이라 루트의 Gnb/Footer 를 자동으로 물려받는다 — 관리자 화면은
+     별도 셸(app/admin/(protected)/layout.tsx)을 쓰므로 여기서 걸러낸다(FR-A00-02 의 취지: 공개
+     내비게이션이 관리자 화면에 섞이면 안 된다). */
+  if (pathname.startsWith('/admin')) return null
+
   return (
     <header className={`gnb${scrolled ? ' scrolled' : ''}${open ? ' menu-open' : ''}`}>
       <div className="gnb__in">

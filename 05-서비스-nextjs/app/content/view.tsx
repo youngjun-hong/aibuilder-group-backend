@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, type CSSProperties } from 'react'
 import { useRibbonFlow, useDock } from '@/components/fx'
+import type { Channel, Video } from '@/lib/data/content'
 
 const durStyle: CSSProperties = {
   position: 'absolute', top: 14, right: 14, zIndex: 3, fontFamily: 'var(--mono)', fontSize: 11,
@@ -10,23 +11,15 @@ const durStyle: CSSProperties = {
   padding: '5px 10px', borderRadius: 999,
 }
 
-type Video = { yt: string; ch: string; dur: string; title: string; sub: string }
-const VIDEOS: Video[] = [
-  { yt: 'kkbtjKvnS-Q', ch: '김이솝의 AI 가이드', dur: '11:11', title: '미친 무료기능 총집합! 제미나이 10분만에 마스터', sub: '조회 44만' },
-  { yt: 'ZIn53VIic14', ch: '김이솝의 AI 가이드', dur: '7:57', title: 'AI 동물 인터뷰 쇼츠 만들기 7분만에 끝!', sub: '조회 36만' },
-  { yt: '8uif-Wf65SI', ch: '김이솝의 AI 가이드', dur: '18:38', title: '12시간씩 클로드 코드 쓰고 깨달은 핵심 꿀팁 20가지', sub: '조회 5.1천 · NEW' },
-  { yt: 'TP6ArUCnt8c', ch: '똑똑한개발자', dur: '15:47', title: '잘봐 이게 컨퍼런스다 — 똑똑한개발자 × 원티드', sub: '브이로그' },
-  { yt: 'LjrO4urq5gI', ch: 'AI 서대표', dur: '23:40', title: '10년차 IT 에이전시 대표가 푸는 개발 외주의 모든 것', sub: '예산·견적·계약' },
-  { yt: 'gtZPILhrnl8', ch: 'AI 서대표', dur: '13:48', title: '오르카(Orca) 설치부터 AI 블로그 자동화 세팅까지', sub: 'NEW' },
-]
-
-const CHANNELS = [
-  { name: 'AI 서대표', href: 'https://www.youtube.com/@AISeoceo', slug: 'seo-jangwon' },
-  { name: '김이솝의 AI 가이드', href: 'https://www.youtube.com/@%EA%B9%80%EC%9D%B4%EC%86%9D%EC%9D%98AI%EA%B0%80%EC%9D%B4%EB%93%9C', slug: 'kim-iesop' },
-  { name: '똑똑한개발자', href: 'https://www.youtube.com/@toktokhandev', slug: 'toktokhan-dev' },
-] as const
-
-export default function ContentView() {
+export default function ContentView({
+  featured,
+  grid,
+  channels,
+}: {
+  featured: Video | null
+  grid: Video[]
+  channels: Channel[]
+}) {
   /* 다크 전환은 CSS 가 body:has(.content-dark) 로 판정한다 (아래 main 의 클래스).
      전에는 여기서 body.dark 를 붙였다 뗐는데, 정작 content.css 는 body { … } 를 그냥
      덮어쓰고 있어서 클래스는 아무 역할도 못 했다. 라우트 CSS 는 클라이언트 이동 때
@@ -43,13 +36,16 @@ export default function ContentView() {
   }, { rsC: 5000 })
   useDock('sub')
 
-  /* 유튜브 직행 + UTM (목업: 이동 대신 UTM 표시 + 콘솔 기록) */
+  /* 유튜브 직행 + UTM — 02-화면설계 P-06: 새 탭으로 실제 이동 + youtube_outbound 이벤트 */
   useEffect(() => {
     document.querySelectorAll<HTMLElement>('[data-yt]').forEach(v => {
       v.addEventListener('click', e => {
         e.preventDefault()
-        const utm = '?utm_source=builder-group&utm_medium=content&utm_content=' + v.dataset.utm
-        window.track?.('youtube_outbound', { utm })
+        const videoId = v.dataset.videoId
+        const utmContent = v.dataset.utm
+        const utm = `?utm_source=builder-group&utm_medium=content&utm_campaign=${videoId}&utm_content=${utmContent}`
+        window.track?.('youtube_outbound', { video_id: videoId, utm_campaign: videoId })
+        window.open(`https://www.youtube.com/watch?v=${videoId}${utm}`, '_blank', 'noopener,noreferrer')
       })
     })
   }, [])
@@ -78,30 +74,46 @@ export default function ContentView() {
 
         <section>
           <div className="wrap">
-            {/* 피처드 (관리자 지정 1건) */}
-            <a className="vcell feat" href="#" data-yt data-utm="featured">
-              {/* 피처드는 이 화면의 LCP 요소다 — 지연 로드하지 않고 우선순위를 올린다 */}
-              <img className="vimg" src="https://i.ytimg.com/vi/0dBSo3eDE-E/hqdefault.jpg" alt="" fetchPriority="high" decoding="async" />
-              <div className="vshade"></div>
-              <span className="chbadge">똑똑한개발자</span>
-              <span className="dur" style={durStyle}>15:47</span>
-              <div className="play"><i>▶</i></div>
-              <div className="cap"><b>2025 똑똑한개발자 상반기 워크샵</b><span>오피셜 · Featured</span></div>
-            </a>
+            {!featured && grid.length === 0 ? (
+              <div className="empty">
+                <h3>영상을 준비 중입니다</h3>
+                <p>곧 새 영상으로 찾아뵐게요 — 그 사이 채널에서 지난 영상을 확인해보세요.</p>
+                {channels[0] && (
+                  <a className="btn btn--ghost btn--sm" href={channels[0].href} target="_blank" rel="noopener noreferrer">
+                    유튜브 채널 가기 ↗
+                  </a>
+                )}
+              </div>
+            ) : (
+              <>
+                {featured && (
+                  /* 피처드 (관리자 지정 1건, 없으면 최신 영상 — lib/data/content.ts 폴백) */
+                  <a className="vcell feat" href="#" data-yt data-video-id={featured.youtubeId} data-utm="featured">
+                    {/* 피처드는 이 화면의 LCP 요소다 — 지연 로드하지 않고 우선순위를 올린다 */}
+                    <img className="vimg" src={`https://i.ytimg.com/vi/${featured.youtubeId}/hqdefault.jpg`} alt="" fetchPriority="high" decoding="async" />
+                    <div className="vshade"></div>
+                    {featured.channelName && <span className="chbadge">{featured.channelName}</span>}
+                    {featured.durationLabel && <span className="dur" style={durStyle}>{featured.durationLabel}</span>}
+                    <div className="play"><i>▶</i></div>
+                    <div className="cap"><b>{featured.title}</b>{featured.subtitle && <span>{featured.subtitle}</span>}</div>
+                  </a>
+                )}
 
-            <div className="vg">
-              {VIDEOS.map(v => (
-                <a className="vcell" href="#" data-yt data-utm="grid" key={v.yt}>
-                  {/* 그리드는 전부 첫 화면 아래 — 외부(i.ytimg.com) 이미지 6장을 선점하지 않게 */}
-                  <img className="vimg" src={`https://i.ytimg.com/vi/${v.yt}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" />
-                  <div className="vshade"></div>
-                  <span className="chbadge">{v.ch}</span>
-                  <span className="dur" style={durStyle}>{v.dur}</span>
-                  <div className="play"><i>▶</i></div>
-                  <div className="cap"><b>{v.title}</b><span>{v.sub}</span></div>
-                </a>
-              ))}
-            </div>
+                <div className="vg">
+                  {grid.map(v => (
+                    <a className="vcell" href="#" data-yt data-video-id={v.youtubeId} data-utm="grid" key={v.id}>
+                      {/* 그리드는 전부 첫 화면 아래 — 외부(i.ytimg.com) 이미지를 선점하지 않게 */}
+                      <img className="vimg" src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt="" loading="lazy" decoding="async" />
+                      <div className="vshade"></div>
+                      {v.channelName && <span className="chbadge">{v.channelName}</span>}
+                      {v.durationLabel && <span className="dur" style={durStyle}>{v.durationLabel}</span>}
+                      <div className="play"><i>▶</i></div>
+                      <div className="cap"><b>{v.title}</b>{v.subtitle && <span>{v.subtitle}</span>}</div>
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
 
             <div className="sub-banner">
               <div>
@@ -109,7 +121,7 @@ export default function ContentView() {
                 <p>세 채널에서 매주 실전 바이브 코딩 콘텐츠가 올라옵니다.</p>
               </div>
               <nav className="channel-tabs" aria-label="유튜브 채널">
-                {CHANNELS.map(channel => (
+                {channels.map(channel => (
                   <a className="channel-tab" href={channel.href} target="_blank" rel="noopener noreferrer" data-track="youtube_channel_click" data-location={`content_${channel.slug}`} key={channel.slug}>
                     {channel.name}<span aria-hidden="true">↗</span>
                   </a>

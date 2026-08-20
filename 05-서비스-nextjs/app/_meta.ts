@@ -26,8 +26,9 @@ export const DEFAULT_DESC =
    상대 경로로 두면 layout 의 metadataBase 를 타므로 도메인이 바뀌어도 따라온다. */
 const OG_IMAGE = { url: '/opengraph-image', width: 1200, height: 630, alt: SITE }
 
-export function pageMeta(opts: { title: string; path: string; description?: string }): Metadata {
+export function pageMeta(opts: { title: string; path: string; description?: string; image?: string }): Metadata {
   const description = opts.description ?? DEFAULT_DESC
+  const images = opts.image ? [{ url: opts.image, width: 1200, height: 630, alt: opts.title }] : [OG_IMAGE]
   return {
     title: opts.title,
     description,
@@ -39,7 +40,7 @@ export function pageMeta(opts: { title: string; path: string; description?: stri
       title: opts.title,
       description,
       url: opts.path,
-      images: [OG_IMAGE],
+      images,
     },
     twitter: { card: 'summary_large_image' },
   }

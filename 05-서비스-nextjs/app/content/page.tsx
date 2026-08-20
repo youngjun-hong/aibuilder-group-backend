@@ -1,4 +1,5 @@
 import { pageMeta } from '@/app/_meta'
+import { listActiveVideosWithFeatured, listChannels } from '@/lib/data/content'
 import './content.css'
 import ContentView from './view'
 
@@ -7,6 +8,7 @@ export const metadata = pageMeta({
   path: '/content',
 })
 
-export default function ContentPage() {
-  return <ContentView />
+export default async function ContentPage() {
+  const [{ featured, grid }, channels] = await Promise.all([listActiveVideosWithFeatured(), listChannels()])
+  return <ContentView featured={featured} grid={grid} channels={channels} />
 }

@@ -3,37 +3,9 @@
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { useRibbonFlow, useDock, useCountUp } from '@/components/fx'
+import type { BuilderCard, WorkCard } from '@/lib/types'
 
-/* ── 수행 프로젝트 데이터 ── */
-type Project = { c: string; tag: string; yr: string; title: string; desc: string; withTeam?: string; img: string; alt: string }
-const PROJECTS: Project[] = [
-  { c: 'commerce', tag: 'Commerce', yr: '2026', title: 'iloom — 리빙 커머스 리뉴얼', desc: '가구 브랜드 일룸의 커머스 경험 개편. 상품 탐색부터 상담 전환까지 여정 재설계.', withTeam: 'with 똑똑한개발자 · 빌더 조쉬', img: 'work-iloom.png', alt: 'iloom 리빙 커머스 화면' },
-  { c: 'aiax', tag: 'AI · AX', yr: '2026', title: 'DAISY — 대홍기획', desc: '광고 그룹의 AI 업무 플랫폼 · 빌더 유나', img: 'work-daisy.png', alt: 'DAISY AI 업무 플랫폼 화면' },
-  { c: 'platform', tag: 'O2O', yr: '2025', title: 'Aerok User — 사용자 앱', desc: '예약·이용 플로우 전면 구축 · 빌더 리아', img: 'work-aerok-user.jpg', alt: 'Aerok 사용자 앱 화면' },
-  { c: 'finance', tag: 'Finance', yr: '2025', title: 'NICE 정보통신 — 결제 인프라 어드민', desc: '결제 데이터 대시보드와 운영 콘솔. 금융 수준 권한·감사 로그 설계 포함.', withTeam: 'with 똑똑한개발자 · 빌더 도현', img: 'work-nice.png', alt: 'NICE 정보통신 결제 어드민 화면' },
-  { c: 'platform', tag: 'SaaS · Admin', yr: '2025', title: 'Aerok Admin — 운영 콘솔', desc: '지점·정산 통합 관리 · 빌더 도현', img: 'work-aerok-admin.jpg', alt: 'Aerok 운영 콘솔 화면' },
-  { c: 'commerce', tag: 'Media', yr: '2024', title: 'Btv 우리동네광고 — SK브로드밴드', desc: '소상공인 TV 광고 셀프 집행 플랫폼 · 빌더 조쉬', img: 'work-btv.png', alt: 'Btv 우리동네광고 화면' },
-  { c: 'platform', tag: 'SaaS · Admin', yr: '2025', title: '마크스폰 EDK', desc: '기업 복지 커머스 운영 시스템 · 빌더 도현', img: 'work-markspon.png', alt: '마크스폰 EDK 화면' },
-  { c: 'aiax', tag: 'AI · AX', yr: '2023', title: 'CANAPE — 도다마인드', desc: 'AI 심리 분석 서비스 · 빌더 유나', img: 'work-canape.png', alt: 'CANAPE AI 심리 분석 서비스 화면' },
-  { c: 'platform', tag: 'Platform', yr: '2022', title: '패밀리케어 — 키즈노트', desc: '가족 돌봄 연결 서비스 · 빌더 리아', img: 'work-familycare.jpg', alt: '키즈노트 패밀리케어 화면' },
-]
-
-/* ── 빌더 프로필 데이터 ── */
-type Builder = { slug: string; box: string; name: string; role: string; desc: string; stk: [string, string]; cnt: number; badge?: { cls: string; label: string } }
-const BUILDERS: Builder[] = [
-  { slug: 'josh', box: 'bcard rv', name: '빌더 조쉬', role: '프로덕트 빌더 · 기획+개발', desc: '기획자·디자이너·개발자를 합친 원맨 프로덕트 빌더. AI 네이티브 운영법 인터뷰의 그 사람.', stk: ['Next.js', 'LLM API'], cnt: 14, badge: { cls: 'lv lv--lead', label: '✳ 이달의 빌더' } },
-  { slug: 'ria', box: 'bcard rv d1', name: '빌더 리아', role: '랜딩 · 인터랙션', desc: '디자인 감도와 전환 설계가 강점. 수주용 랜딩과 브랜드 사이트를 주로 맡습니다.', stk: ['Interaction', 'GA4 설계'], cnt: 9 },
-  { slug: 'dohyun', box: 'bcard rv d2', name: '빌더 도현', role: '플랫폼 · 어드민', desc: '데이터 모델링과 권한 설계 경험 다수. 관리자·정산 시스템을 안정적으로 짓습니다.', stk: ['Supabase', 'RBAC'], cnt: 11 },
-  { slug: 'yuna', box: 'bcard rv d3', name: '빌더 유나', role: 'AI 서비스 · 에이전트', desc: 'LLM 연동·프롬프트 설계를 실무로 다룹니다. PoC부터 단계 검증으로 리스크를 줄입니다.', stk: ['Agents', 'RAG'], cnt: 7 },
-  { slug: 'hajun', box: 'bcard rv', name: '빌더 하준', role: '모바일 앱 · 크로스플랫폼', desc: '하나의 코드베이스로 iOS·Android를 함께 짓습니다. 스토어 심사·배포까지 책임집니다.', stk: ['Flutter', '스토어 배포'], cnt: 6 },
-  { slug: 'sein', box: 'bcard rv d1', name: '빌더 세인', role: '데이터 · 업무 자동화', desc: '반복되는 손작업을 파이프라인과 에이전트로 바꿉니다. 데이터가 흐르게 만드는 빌더.', stk: ['Python', 'n8n'], cnt: 5 },
-  { slug: 'minseo', box: 'bcard rv d2', name: '빌더 민서', role: '브랜드 · 모션 디자인', desc: '디자인 시스템과 모션으로 서비스의 인상을 만듭니다. 개발자가 바로 쓸 수 있는 디자인.', stk: ['Design System', 'Motion'], cnt: 4 },
-  { slug: 'taeo', box: 'bcard rv d2', name: '빌더 태오', role: '커머스 · 결제', desc: 'PG·정기결제 연동과 주문·정산 흐름 설계가 전문. 돈이 오가는 화면을 꼼꼼하게 짓습니다.', stk: ['PG 연동', '구독 결제'], cnt: 8, badge: { cls: 'lv lv--new', label: 'NEW' } },
-  { slug: 'eunchae', box: 'bcard rv d3', name: '빌더 은채', role: '그로스 · SEO', desc: '검색 유입과 콘텐츠 구조를 설계합니다. 만든 뒤에 발견되게 하는 것까지가 일입니다.', stk: ['SEO', 'Analytics'], cnt: 5, badge: { cls: 'lv lv--new', label: 'NEW' } },
-  { slug: 'junho', box: 'bcard rv d4', name: '빌더 준호', role: '운영 · 인프라', desc: '배포 자동화와 모니터링으로 서비스를 지킵니다. 출시 후에도 문제가 먼저 보이게.', stk: ['CI/CD', '모니터링'], cnt: 3, badge: { cls: 'lv lv--new', label: 'NEW' } },
-]
-
-export default function WorkView() {
+export default function WorkView({ projects, builders }: { projects: WorkCard[]; builders: BuilderCard[] }) {
   useRibbonFlow({
     rsW: [
       'AI 에이전트 ✳ 랜딩 ✳ 플랫폼 ✳ 모바일 앱 ✳ 자동화 ✳ ',
@@ -127,9 +99,9 @@ export default function WorkView() {
             <p>추천받고 싶다면 30초 매칭으로, 직접 둘러보고 싶다면 작업물부터.</p>
             {/* 숫자는 최종 표기 그대로 둔다 — useCountUp 이 형식만 읽어 0부터 센다 */}
             <div className="head-stats rv">
-              <div className="hstat"><b className="num" data-count>10</b><i className="unit">명</i><span>검증된 빌더</span></div>
+              <div className="hstat"><b className="num" data-count>{builders.length}</b><i className="unit">명</i><span>검증된 빌더</span></div>
               <span className="hstat-sep" aria-hidden="true">✳</span>
-              <div className="hstat"><b className="num" data-count>09</b><i className="unit">건</i><span>공개 프로젝트</span></div>
+              <div className="hstat"><b className="num" data-count>{String(projects.length).padStart(2, '0')}</b><i className="unit">건</i><span>공개 프로젝트</span></div>
               <span className="hstat-sep" aria-hidden="true">✳</span>
               <div className="hstat"><b className="num" data-count>4.9</b><i className="unit">/5</i><span>평균 만족도</span></div>
             </div>
@@ -155,7 +127,7 @@ export default function WorkView() {
             <div className="panel__head">
               <div>
                 <div className="panel__no"><i>01</i>직접 탐색</div>
-                <h2>수행 프로젝트 <span className="head-cnt num" data-cnt>( 09 )</span></h2>
+                <h2>수행 프로젝트 <span className="head-cnt num" data-cnt>{'( ' + String(projects.length).padStart(2, '0') + ' )'}</span></h2>
                 <p className="panel__sub">비슷한 결과물을 먼저 찾으세요 — 담당 빌더가 함께 보입니다.</p>
               </div>
               <div className="panel__side"><span>고르기 어렵다면</span><a href="#match">02 빠른 매칭 <i>↓</i></a></div>
@@ -173,16 +145,16 @@ export default function WorkView() {
             </div>
 
             <div className="pxg" data-list>
-              {PROJECTS.map(p => (
-                <Link className="wcard" href="/work-detail" data-c={p.c} data-cursor="VIEW →" key={p.title}>
+              {projects.map(p => (
+                <Link className="wcard" href={`/work/${p.slug}`} data-c={p.categorySlug ?? ''} data-cursor="VIEW →" key={p.slug}>
                   <div className="slot mask">
-                    <img className="cover" src={`/assets/img/${p.img}`} alt={p.alt} loading="lazy" />
+                    <img className="cover" src={p.thumbUrl ?? ''} alt={`${p.title} 화면`} loading="lazy" />
                   </div>
                   <div className="meta">
-                    <div className="mrow"><span className="tag">{p.tag}</span><span className="yr num">{p.yr}</span></div>
+                    <div className="mrow"><span className="tag">{p.tagLabel}</span><span className="yr num">{p.year}</span></div>
                     <h3>{p.title}</h3>
-                    <p>{p.desc}</p>
-                    {p.withTeam && <div className="builders">{p.withTeam}</div>}
+                    <p>{p.summary}</p>
+                    {p.withTeamLabel && <div className="builders">{p.withTeamLabel}</div>}
                   </div>
                 </Link>
               ))}
@@ -260,29 +232,37 @@ export default function WorkView() {
             <div className="panel__head">
               <div>
                 <div className="panel__no"><i>03</i>만드는 사람들</div>
-                <h2>검증된 빌더 <span className="head-cnt num">( 10 )</span></h2>
+                <h2>검증된 빌더 <span className="head-cnt num">{'( ' + builders.length + ' )'}</span></h2>
                 <p className="panel__sub">카드를 누르면 빌더의 프로필과 수행한 작업물을 볼 수 있습니다.</p>
               </div>
               <div className="panel__side"><span>누구에게 맡길지 고민된다면</span><a className="up" href="#match">02 빠른 매칭 <i>↑</i></a></div>
             </div>
             <div className="bld__grid">
-              {BUILDERS.map(b => (
-                <Link className={b.box} href={`/builder?b=${b.slug}`} data-cursor="PROFILE →" data-track="builder_click" data-slug={b.slug} key={b.slug}>
-                  <div className="slot mask">
-                    <img src={`/assets/img/av-${b.slug}.jpg`} alt={`${b.name} 프로필 사진`} />
-                    {b.badge && <span className={b.badge.cls}>{b.badge.label}</span>}
-                    {/* 수행 건수는 이 카드에서 유일한 실적 근거다 — 알약으로 세워 먼저 읽히게 한다 */}
-                    <div className="ct"><span className="cnt">수행 <b className="num">{b.cnt}</b>건</span><span className="go">Profile →</span></div>
-                    <div className="slot__spec"><b>Asset — 빌더 인물 사진</b><span>상반신 인물 컷 · 밝은 배경 통일</span><em>800×1000px · 4:5 @2x</em></div>
-                  </div>
-                  <div className="meta">
-                    <b>{b.name}</b>
-                    <span className="role">{b.role}</span>
-                    <p>{b.desc}</p>
-                    <div className="stk"><i>{b.stk[0]}</i><i>{b.stk[1]}</i></div>
-                  </div>
-                </Link>
-              ))}
+              {builders.map((b, i) => {
+                const boxClass = 'bcard rv' + (i % 4 !== 0 ? ' d' + (i % 4) : '')
+                const badge = b.isFeatured
+                  ? { cls: 'lv lv--lead', label: '✳ 이달의 빌더' }
+                  : b.isNew
+                    ? { cls: 'lv lv--new', label: 'NEW' }
+                    : null
+                return (
+                  <Link className={boxClass} href={`/builder?b=${b.slug}`} data-cursor="PROFILE →" data-track="builder_click" data-slug={b.slug} key={b.slug}>
+                    <div className="slot mask">
+                      <img src={b.avatarUrl ?? ''} alt={`${b.name} 프로필 사진`} />
+                      {badge && <span className={badge.cls}>{badge.label}</span>}
+                      {/* 수행 건수는 이 카드에서 유일한 실적 근거다 — 알약으로 세워 먼저 읽히게 한다 */}
+                      <div className="ct"><span className="cnt">수행 <b className="num">{b.doneCount}</b>건</span><span className="go">Profile →</span></div>
+                      <div className="slot__spec"><b>Asset — 빌더 인물 사진</b><span>상반신 인물 컷 · 밝은 배경 통일</span><em>800×1000px · 4:5 @2x</em></div>
+                    </div>
+                    <div className="meta">
+                      <b>{b.name}</b>
+                      <span className="role">{b.roleLabel}</span>
+                      <p>{b.oneLiner}</p>
+                      <div className="stk"><i>{b.stackTags[0]}</i><i>{b.stackTags[1]}</i></div>
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
             <p className="bld-note">※ <b>✳ 이달의 빌더</b>는 매달 고객 평가로 새로 선정합니다 · <b>NEW</b>는 합류 90일 이내의 빌더입니다</p>
           </section>

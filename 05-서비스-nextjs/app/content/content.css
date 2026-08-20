@@ -6,6 +6,9 @@ body:has(.content-dark) { color: var(--paper);
     var(--ink);
   background-attachment: fixed; }
 body:has(.content-dark)::after { opacity: .05; }
+body:has(.content-dark) .empty { border-color: var(--d-line); background: color-mix(in srgb, var(--paper) 6%, transparent); }
+body:has(.content-dark) .empty h3 { color: var(--paper); }
+body:has(.content-dark) .empty p { color: var(--d-mut); }
 body:has(.content-dark) .gnb.scrolled { background: color-mix(in srgb, var(--ink) 86%, transparent); border-bottom-color: var(--d-line); }
 /* 다크 지면에서는 GNB 캡슐도 어둡게 뒤집는다. 캡슐이 크림색인 채로 글자만 paper 로
    바꾸면 크림 위 크림이 돼서 비활성 메뉴가 거의 안 보인다 (활성 항목만 읽혔다). */

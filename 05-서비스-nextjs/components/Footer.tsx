@@ -1,8 +1,15 @@
+'use client'
+
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import BrandLink from './BrandLink'
 
 export default function Footer() {
+  const pathname = usePathname()
+  /* Gnb.tsx 와 동일한 이유 — /admin/* 는 별도 셸을 쓰므로 공개 푸터를 물려받지 않는다. */
+  if (pathname.startsWith('/admin')) return null
+
   return (
     <footer>
       <div className="wrap">
