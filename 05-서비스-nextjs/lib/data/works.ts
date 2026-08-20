@@ -198,10 +198,9 @@ export async function listWorksForAdmin(opts: {
     .from('works')
     .select(`
       id, slug, title, status, updated_at, reject_reason,
-      category:categories(name),
+      category:categories(name, sort),
       work_builders(builder:builders(name))
     `)
-    .order('updated_at', { ascending: false })
 
   if (!opts.isAdmin) query = query.eq('created_by', opts.builderId)
   if (opts.status) query = query.eq('status', opts.status)
@@ -209,16 +208,24 @@ export async function listWorksForAdmin(opts: {
 
   const { data, error } = await query
   if (error) throw error
-  return (data as any[]).map(row => ({
-    id: row.id,
-    slug: row.slug,
-    title: row.title,
-    status: row.status,
-    categoryName: row.category?.name ?? null,
-    builderNames: (row.work_builders ?? []).map((wb: any) => wb.builder?.name).filter(Boolean),
-    updatedAt: row.updated_at,
-    rejectReason: row.reject_reason,
-  }))
+  // 공개 /work 페이지의 카테고리 칩 순서(categories.sort)를 그대로 따르고,
+  // 같은 카테고리 안에서는 최근 수정순.
+  return (data as any[])
+    .sort((a, b) => {
+      const sortDiff = (a.category?.sort ?? 999) - (b.category?.sort ?? 999)
+      if (sortDiff !== 0) return sortDiff
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    })
+    .map(row => ({
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      status: row.status,
+      categoryName: row.category?.name ?? null,
+      builderNames: (row.work_builders ?? []).map((wb: any) => wb.builder?.name).filter(Boolean),
+      updatedAt: row.updated_at,
+      rejectReason: row.reject_reason,
+    }))
 }
 
 export async function getWorkByIdForAdmin(id: string) {

@@ -58,19 +58,26 @@ export async function listFaqItemsForAdmin(): Promise<AdminFaqItem[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('faq_items')
-    .select('id, topic_id, question, answer, show_on_home, is_active, sort, topic:faq_topics(label)')
-    .order('sort')
+    .select('id, topic_id, question, answer, show_on_home, is_active, sort, topic:faq_topics(label, sort)')
   if (error) throw error
-  return (data ?? []).map((r: any) => ({
-    id: r.id,
-    topicId: r.topic_id,
-    topicLabel: r.topic?.label ?? '',
-    question: r.question,
-    answer: r.answer,
-    showOnHome: r.show_on_home,
-    isActive: r.is_active,
-    sort: r.sort,
-  }))
+  // 공개 /faq 페이지의 주제 탭 순서(faq_topics.sort)대로 묶고, 주제 안에서는 항목 sort 순 —
+  // 목록이 실제 홈/공개 페이지의 탭 구성과 같은 순서로 보이게.
+  return (data ?? [])
+    .sort((a: any, b: any) => {
+      const topicDiff = (a.topic?.sort ?? 999) - (b.topic?.sort ?? 999)
+      if (topicDiff !== 0) return topicDiff
+      return a.sort - b.sort
+    })
+    .map((r: any) => ({
+      id: r.id,
+      topicId: r.topic_id,
+      topicLabel: r.topic?.label ?? '',
+      question: r.question,
+      answer: r.answer,
+      showOnHome: r.show_on_home,
+      isActive: r.is_active,
+      sort: r.sort,
+    }))
 }
 
 export async function getFaqItemByIdForAdmin(id: string) {
