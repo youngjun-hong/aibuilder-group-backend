@@ -11,7 +11,7 @@ export default function SectionForm({ section, title, items }: { section: string
   )
 
   return (
-    <details className="admin-section-card" open={items.length <= 6}>
+    <details className="admin-section-card">
       <summary>{title} <span className="hint">({items.length}개 필드)</span></summary>
       <form action={formAction} className="admin-form" style={{ marginTop: 16 }}>
         <input type="hidden" name="section" value={section} />
