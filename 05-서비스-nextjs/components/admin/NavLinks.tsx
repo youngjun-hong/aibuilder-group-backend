@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 export default function NavLinks({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname()
   const links = [
+    ...(isAdmin ? [{ href: '/admin/home', label: '홈' }] : []),
     { href: '/admin/insights', label: 'Insight' },
     { href: '/admin/works', label: 'Work' },
     ...(isAdmin ? [{ href: '/admin/content', label: 'Content' }] : []),

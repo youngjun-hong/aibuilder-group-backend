@@ -169,3 +169,11 @@
 .admin-vcell__cap b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13.5px; font-weight: 700; letter-spacing: -0.015em; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.7); }
 .admin-vcell__cap span { font-family: var(--mono); font-size: 10.5px; color: rgba(244,241,234,.72); letter-spacing: .06em; }
 .admin-vcell__row { display: flex; gap: 6px; padding: 11px; flex-wrap: wrap; border-top: 1px solid var(--line); }
+
+/* 홈 화면 문구 관리 — 섹션별 접이식 카드 */
+.admin-section-card { border: 1px solid var(--line); border-radius: 20px; background: var(--paper-2); padding: 18px 22px; margin-bottom: 16px; }
+.admin-section-card summary { cursor: pointer; font-size: 16px; font-weight: 800; letter-spacing: -0.02em; list-style: none; display: flex; align-items: center; gap: 10px; }
+.admin-section-card summary::-webkit-details-marker { display: none; }
+.admin-section-card summary::before { content: "▸"; color: var(--muted-2); transition: transform .15s; font-size: 12px; }
+.admin-section-card[open] summary::before { transform: rotate(90deg); }
+.admin-section-card .admin-field textarea { font-size: 13.5px; min-height: unset; }

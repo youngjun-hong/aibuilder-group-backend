@@ -5,6 +5,8 @@ import { useEffect, type CSSProperties } from 'react'
 import { useRibbonFlow, useReplayOnView, useAccordion } from '@/components/fx'
 import FaqList from '@/components/FaqList'
 import type { FaqTopic } from './_faq'
+import type { WorkCard, InsightCard } from '@/lib/types'
+import type { Video } from '@/lib/data/content'
 
 /* 스테퍼 점등 순서를 CSS 변수로 넘긴다 (CSS 커스텀 속성이라 캐스트가 필요하다) */
 const step = (i: number) => ({ '--i': i }) as CSSProperties
@@ -90,10 +92,11 @@ function Lv({ r = false }: { r?: boolean }) {
   )
 }
 
-const LAURELS = [
-  { box: 'laurbox rv', cls: 'laur laur--blue', top: 'YOUTUBE CREATOR', big: '8.4만', sub: 'SUBSCRIBERS' },
-  { box: 'laurbox rv d1', cls: 'laur laur--gold laur--wide', top: 'SELECTED BY', big: 'FORBES KOREA', sub: '30 UNDER 30' },
-  { box: 'laurbox rv d2', cls: 'laur laur--ink', top: 'KOREA MARKET', big: 'No.1', sub: 'FREELANCER PLATFORM' },
+/* top/big/sub 텍스트는 site_content(trust.laurelN_*)에서 온다 — 구조(라우렐 개수·색)만 고정 */
+const LAUREL_SHAPE = [
+  { box: 'laurbox rv', cls: 'laur laur--blue', key: 'laurel1' },
+  { box: 'laurbox rv d1', cls: 'laur laur--gold laur--wide', key: 'laurel2' },
+  { box: 'laurbox rv d2', cls: 'laur laur--ink', key: 'laurel3' },
 ]
 
 /* ── 브랜드 로고월 ── */
@@ -118,24 +121,31 @@ function Bset({ brands }: { brands: [string, string][] }) {
   )
 }
 
-export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
+export default function HomeView({
+  faqHome,
+  content,
+  previewWorks,
+  previewInsights,
+  previewFeatured,
+  previewSideVideos,
+}: {
+  faqHome: FaqTopic[]
+  content: Record<string, string>
+  previewWorks: WorkCard[]
+  previewInsights: InsightCard[]
+  previewFeatured: Video | null
+  previewSideVideos: Video[]
+}) {
+  const t = (key: string) => content[key] ?? ''
+
   /* v19.5 이음새 리본 — 문구 덱 로테이션(페이드 전환) + 곡선 흐름.
      구현은 components/fx.ts 의 useRibbonFlow 한 곳으로 모았다 — 전에는 같은 스크립트가
-     여기에 통째로 복제돼 있어서 성능 수정을 두 군데 해야 했다. */
-  useRibbonFlow({
-    rsepA: [
-      'AI 에이전트 ✳ 랜딩 페이지 ✳ 플랫폼 ✳ 모바일 앱 ✳ 업무 자동화 ✳ ',
-      'PLAN ✳ DESIGN ✳ BUILD ✳ REVIEW ✳ 올인원 턴키 ✳ ',
-      '아이디어만 가져오세요 ✳ WE BUILD THE REST ✳ NDA 가능 ✳ ',
-      'PoC 먼저, 확장은 그다음 ✳ SHIP FAST, SHIP RIGHT ✳ ',
-    ],
-    rsepB: [
-      'VIBE CODING ✳ 검증된 빌더 ✳ AI BUILDER GROUP ✳ 외주를 해드립니다 ✳ ',
-      'AI가 짓고, 사람이 검수합니다 ✳ MADE WITH AI, FINISHED BY HUMANS ✳ ',
-      '상담·견적 무료 ✳ 24시간 내 회신 ✳ AI BUILDER GROUP ✳ ',
-      '대충 만든 결과물은 통과 못 함 ✳ QUALITY GATE: ON ✳ 검수 통과분만 전달 ✳ ',
-    ],
-  }, { rsepA: 5200, rsepB: 4500 })
+     여기에 통째로 복제돼 있어서 성능 수정을 두 군데 해야 했다.
+     문구는 site_content 에서 온다(관리자 화면 "홈" 에서 편집) — SVG textPath 의 no-JS
+     폴백도 같은 값(줄1)에서 파생시켜서 두 곳이 따로 놀지 않게 한다. */
+  const ribbonA = [t('ribbon_a.line1'), t('ribbon_a.line2'), t('ribbon_a.line3'), t('ribbon_a.line4')]
+  const ribbonB = [t('ribbon_b.line1'), t('ribbon_b.line2'), t('ribbon_b.line3'), t('ribbon_b.line4')]
+  useRibbonFlow({ rsepA: ribbonA, rsepB: ribbonB }, { rsepA: 5200, rsepB: 4500 })
   /* 0.85 — 스테퍼가 화면에 거의 다 들어왔을 때 시작한다. 낮게 잡으면 아직 화면 끄트머리에
      있을 때 재생이 끝나서, 정작 눈이 갔을 땐 이미 다 켜져 있다. */
   useReplayOnView('[data-stepflow]', 'lit', 0.85)
@@ -316,7 +326,7 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         {/* ===== S1 Hero — 스트림: 데스크톱 실물 + 모바일 듀오 교차 ===== */}
         <section className="hero">
           <div className="hero__bg" aria-hidden="true"></div>
-          <div className="hero-real"><i>✓</i>실제 제작 화면입니다</div>
+          <div className="hero-real"><i>✓</i>{t('hero.badge')}</div>
 
           <div className="streamwrap" aria-hidden="true">
             <div className="stream">
@@ -327,17 +337,17 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
           </div>
 
           <div className="wrap hero__in">
-            <span className="h1-over"><i>✓</i><em>검증된</em></span>
-            <h1 className="st st1"><span className="w300">바이브 코딩으로,</span><br /><mark>외주</mark>를 해드립니다</h1>
-            <p className="st st2">기획부터 개발, 검수까지 한 팀이 끝까지 맡습니다.<br />
-              아이디어만 가져오세요 — 나머지는 검증된 빌더의 일입니다.</p>
+            <span className="h1-over"><i>✓</i><em>{t('hero.overline')}</em></span>
+            <h1 className="st st1"><span className="w300">{t('hero.title_1')}</span><br /><mark>{t('hero.title_mark')}</mark>{t('hero.title_suffix')}</h1>
+            <p className="st st2">{t('hero.subhead_1')}<br />
+              {t('hero.subhead_2')}</p>
             <div className="st st3 hero-ctas">
-              <Link className="btn btn--ink btn--pulse" href="/contact" data-track="cta_click" data-location="hero">프로젝트 문의 <span className="arr">→</span></Link>
-              <Link className="cta-sub" href="/work" data-track="cta_click" data-location="hero_secondary">작업물 먼저 보기 <span className="arr">→</span></Link>
+              <Link className="btn btn--ink btn--pulse" href="/contact" data-track="cta_click" data-location="hero">{t('hero.cta_primary')} <span className="arr">→</span></Link>
+              <Link className="cta-sub" href="/work" data-track="cta_click" data-location="hero_secondary">{t('hero.cta_secondary')} <span className="arr">→</span></Link>
             </div>
-            <p className="st st3 hero-proof"><a className="proof-link" href="#builders">검증된 빌더 <b className="num">10</b>인</a><i></i><a className="proof-link" href="#work">공개 프로젝트 <b className="num">9</b>건</a><i></i><a className="proof-link" href="#system"><b>검수 시스템</b> 운영</a></p>
+            <p className="st st3 hero-proof"><a className="proof-link" href="#builders">{t('hero.proof_builders_label')} <b className="num">{t('hero.proof_builders_num')}</b>인</a><i></i><a className="proof-link" href="#work">{t('hero.proof_work_label')} <b className="num">{t('hero.proof_work_num')}</b>건</a><i></i><a className="proof-link" href="#system"><b>{t('hero.proof_system_label')}</b> 운영</a></p>
           </div>
-          <div className="hero__scroll">SCROLL</div>
+          <div className="hero__scroll">{t('hero.scroll_label')}</div>
         </section>
 
         {/* v19: 이음새 리본 A — 히어로 ↔ 검수 시스템 (잉크 리본 · 서비스 키워드) */}
@@ -347,7 +357,7 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
             <use href="#rsepA" className="edge2" />
             <use href="#rsepA" className="lane2" />
             <text className="t2">
-              <textPath href="#rsepA" data-wflow data-unit="5" data-speed="0.026" data-dir="rev">AI 에이전트 ✳ 랜딩 ✳ 플랫폼 ✳ 모바일 앱 ✳ 자동화 ✳ AI 에이전트 ✳ 랜딩 ✳ 플랫폼 ✳ 모바일 앱 ✳ 자동화 ✳ </textPath>
+              <textPath href="#rsepA" data-wflow data-unit="5" data-speed="0.026" data-dir="rev">{ribbonA[0]}{ribbonA[0]}</textPath>
             </text>
           </svg>
         </div>
@@ -356,14 +366,14 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section className="s4x" id="system">
           <div className="wrap">
             <div className="s4x__head">
-              <h2><mark>대충</mark> 만든 결과물은<br />통과하지 못합니다</h2>
+              <h2><mark>{t('trust.title_mark')}</mark> {t('trust.title_line1')}<br />{t('trust.title_line2')}</h2>
             </div>
             <div className="s4x__grid">
-              {LAURELS.map(l => (
-                <div className={l.box} key={l.top}>
+              {LAUREL_SHAPE.map(l => (
+                <div className={l.box} key={l.key}>
                   <div className={l.cls}>
                     <Lv />
-                    <span className="laur__txt"><span className="l-star">✦</span><span className="l-top">{l.top}</span><b>{l.big}</b><span className="l-sub">{l.sub}</span></span>
+                    <span className="laur__txt"><span className="l-star">✦</span><span className="l-top">{t(`trust.${l.key}_top`)}</span><b>{t(`trust.${l.key}_big`)}</b><span className="l-sub">{t(`trust.${l.key}_sub`)}</span></span>
                     <Lv r />
                   </div>
                 </div>
@@ -371,41 +381,41 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
               <div className="s4x-card rv">
                 <div className="vis2 v2--edu">
                   <img className="v2-person" src="/assets/img/p-kiesop.png" alt="김이솝" />
-                  <div className="ic-pill ic-pill--side"><span className="spark">✦</span>커리큘럼 수료<span className="ok">✓</span></div>
+                  <div className="ic-pill ic-pill--side"><span className="spark">✦</span>{t('trust.card1_pill')}<span className="ok">✓</span></div>
                 </div>
-                <div className="bd2"><b>교육 — 김이솝 커리큘럼</b><span>그가 설계한 과정을 <mark>수료한 빌더만 투입</mark></span></div>
+                <div className="bd2"><b>{t('trust.card1_heading')}</b><span>{t('trust.card1_desc')}<mark>{t('trust.card1_mark')}</mark></span></div>
               </div>
               <div className="s4x-card rv d1">
                 <div className="vis2 v2--sys">
                   <div className="v2-tok"><span>+ O ✳</span><em>(주)똑똑한개발자</em></div>
                   <div className="ic-team">
-                    <span className="bub">오늘 검수 2건 통과 ✓</span>
+                    <span className="bub">{t('trust.card2_bubble')}</span>
                     <div className="avs"><i>조</i><i>리</i><i className="core">✳</i><i>도</i><i className="more">+24</i></div>
                   </div>
                 </div>
-                <div className="bd2"><b>검수 — (주)똑똑한개발자</b><span>크몽 자회사 — <mark>전 결과물 기준 심사</mark></span></div>
+                <div className="bd2"><b>{t('trust.card2_heading')}</b><span>{t('trust.card2_desc')}<mark>{t('trust.card2_mark')}</mark></span></div>
               </div>
               <div className="s4x-card rv d2">
                 <div className="vis2 v2--match">
                   <img className="v2-kmong" src="/assets/img/p-kmong.png" alt="크몽" />
                   <div className="ic-match ic-match--side">
-                    <div className="chip2"><i>유</i><div><b>빌더 유나</b><span>AI 서비스</span></div></div>
-                    <span className="done">매칭 완료</span>
+                    <div className="chip2"><i>유</i><div><b>{t('trust.card3_builder_name')}</b><span>{t('trust.card3_builder_role')}</span></div></div>
+                    <span className="done">{t('trust.card3_badge')}</span>
                   </div>
                 </div>
-                <div className="bd2"><b>매칭·보증 — 크몽</b><span>거래·정산을 <mark>마켓 안전망이 보증</mark></span></div>
+                <div className="bd2"><b>{t('trust.card3_heading')}</b><span>{t('trust.card3_desc')}<mark>{t('trust.card3_mark')}</mark></span></div>
               </div>
             </div>
             {/* --i = 점등 순서. 사이의 .fline 까지 한 칸씩 세므로 0,1,2,… 로 이어 붙인다.
                 nth-child 로 세면 선까지 섞여 순서가 어긋난다. */}
             <div className="sys__flow2" data-stepflow aria-label="검증 프로세스" style={{ marginTop: 72 }}>
-              <span className="fstep" style={step(0)}><span className="dot">01</span><span className="lb2">교육<small>커리큘럼 수료</small></span></span>
+              <span className="fstep" style={step(0)}><span className="dot">01</span><span className="lb2">{t('trust.flow1_label')}<small>{t('trust.flow1_sub')}</small></span></span>
               <span className="fline" style={step(1)}></span>
-              <span className="fstep" style={step(2)}><span className="dot">02</span><span className="lb2">제작<small>검증된 빌더</small></span></span>
+              <span className="fstep" style={step(2)}><span className="dot">02</span><span className="lb2">{t('trust.flow2_label')}<small>{t('trust.flow2_sub')}</small></span></span>
               <span className="fline" style={step(3)}></span>
-              <span className="fstep" style={step(4)}><span className="dot">03</span><span className="lb2">검수<small>9년차 기준 심사</small></span></span>
+              <span className="fstep" style={step(4)}><span className="dot">03</span><span className="lb2">{t('trust.flow3_label')}<small>{t('trust.flow3_sub')}</small></span></span>
               <span className="fline" style={step(5)}></span>
-              <span className="fstep fstep--last" style={step(6)}><span className="dot">✓</span><span className="lb2">고객 전달<small>검수 통과분만</small></span></span>
+              <span className="fstep fstep--last" style={step(6)}><span className="dot">✓</span><span className="lb2">{t('trust.flow4_label')}<small>{t('trust.flow4_sub')}</small></span></span>
             </div>
           </div>
         </section>
@@ -414,19 +424,19 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section className="s4b">
           <div className="wrap">
             <div className="s4x__brands">
-              <h3>똑똑한 개발자는 다양한 기업의<br />복잡한 문제를 함께 해결해 왔습니다</h3>
-              <p className="bsub">이제 그 기준을 바이브 코딩에 적용합니다</p>
-              <p className="bcta"><mark>믿고 맡기세요</mark></p>
+              <h3>{t('partner.title_1')}<br />{t('partner.title_2')}</h3>
+              <p className="bsub">{t('partner.subtitle')}</p>
+              <p className="bcta"><mark>{t('partner.cta_mark')}</mark></p>
               <div className="bwall">
                 <div className="brow"><div className="btrack"><Bset brands={BRANDS1} /><Bset brands={BRANDS1} /></div></div>
                 <div className="brow"><div className="btrack btrack--rev"><Bset brands={BRANDS2} /><Bset brands={BRANDS2} /></div></div>
               </div>
             </div>
             <div className="s4x__stats" style={{ marginTop: 36 }}>
-              <span className="st2"><b>3<em>단계</em></b><span>모든 단계 확인 후 진행</span></span>
-              <span className="st2"><b>17<em>화면</em></b><span>범위를 화면 단위로 확정</span></span>
-              <span className="st2"><b>3<em>주</em></b><span>랜딩 표준 납기</span></span>
-              <span className="st2"><b>30<em>일</em></b><span>무상 하자보수 보장</span></span>
+              <span className="st2"><b>{t('partner.stat1_num')}<em>{t('partner.stat1_unit')}</em></b><span>{t('partner.stat1_label')}</span></span>
+              <span className="st2"><b>{t('partner.stat2_num')}<em>{t('partner.stat2_unit')}</em></b><span>{t('partner.stat2_label')}</span></span>
+              <span className="st2"><b>{t('partner.stat3_num')}<em>{t('partner.stat3_unit')}</em></b><span>{t('partner.stat3_label')}</span></span>
+              <span className="st2"><b>{t('partner.stat4_num')}<em>{t('partner.stat4_unit')}</em></b><span>{t('partner.stat4_label')}</span></span>
             </div>
           </div>
         </section>
@@ -436,8 +446,8 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
           <div className="wrap">
             <div className="s2__grid">
               <div className="s2__left">
-                <h2>요즘 바이브 코딩 외주,<br />이런 곳은 조심하세요</h2>
-                <p className="note">스크롤을 내리면, 실제로 시장에서 벌어지고 있는 일들이 하나씩 나타납니다.</p>
+                <h2>{t('problem.title_1')}<br />{t('problem.title_2')}</h2>
+                <p className="note">{t('problem.note')}</p>
                 <div className="s2__icons" aria-hidden="true">
                   <span data-ic><svg viewBox="0 0 24 24"><rect x="2.5" y="3.5" width="19" height="17" rx="2.5" fill="#FFFFFF" stroke="#0E0E0C" strokeWidth="1.6" /><path d="M2.5 6a2.5 2.5 0 0 1 2.5-2.5h14a2.5 2.5 0 0 1 2.5 2.5v2.5h-19z" fill="#2F80EA" stroke="#0E0E0C" strokeWidth="1.6" /><circle cx="5.8" cy="6" r=".9" fill="#FFFFFF" /><circle cx="8.6" cy="6" r=".9" fill="#FFFFFF" /><g stroke="#E5484D" strokeWidth="2.5" strokeLinecap="round"><line x1="9.5" y1="12.5" x2="14.5" y2="17.5" /><line x1="14.5" y1="12.5" x2="9.5" y2="17.5" /></g></svg></span>
                   <span data-ic><svg viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><g stroke="#2F80EA" strokeWidth="2.5"><polyline points="17 2.5 21 6.5 17 10.5" /><path d="M3 11v-.5a4 4 0 0 1 4-4h14" /></g><g stroke="#F5A623" strokeWidth="2.5"><polyline points="7 21.5 3 17.5 7 13.5" /><path d="M21 13v.5a4 4 0 0 1-4 4H3" /></g></svg></span>
@@ -449,24 +459,24 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
                 <div className="warn warn--a" data-warn>
                   <span className="wnum">01</span>
                   <div>
-                    <h3>포트폴리오 수백 개,<br />전부 목업인 업체</h3>
-                    <p>실서비스 URL을 물어보세요. <mark>답 못 하면 목업</mark>입니다.</p>
+                    <h3>{t('problem.card1_title1')}<br />{t('problem.card1_title2')}</h3>
+                    <p>{t('problem.card1_desc')}<mark>{t('problem.card1_mark')}</mark>입니다.</p>
                   </div>
                   <div className="w-fig w-fig1"><i></i><i></i><i></i><i></i><i className="real"></i><i></i><i></i><i></i><i></i></div>
                 </div>
                 <div className="warn warn--b" data-warn>
                   <span className="wnum">02</span>
                   <div>
-                    <h3>모든 섹션이 똑같이<br />움직이는 사이트</h3>
-                    <p>전부 같은 애니메이션이면 — <mark>한 번에 뽑은 겁니다.</mark></p>
+                    <h3>{t('problem.card2_title1')}<br />{t('problem.card2_title2')}</h3>
+                    <p>{t('problem.card2_desc')}<mark>{t('problem.card2_mark')}</mark></p>
                   </div>
                   <div className="w-fig w-fig2"><i></i><i></i><i></i></div>
                 </div>
                 <div className="warn warn--c" data-warn>
                   <span className="wnum">03</span>
                   <div>
-                    <h3>싼 가격만 내세우는<br />반값 외주</h3>
-                    <p>반값의 결말은 <mark>다시 만드는 비용</mark>입니다.</p>
+                    <h3>{t('problem.card3_title1')}<br />{t('problem.card3_title2')}</h3>
+                    <p>{t('problem.card3_desc')}<mark>{t('problem.card3_mark')}</mark>입니다.</p>
                   </div>
                   <div className="w-fig w-fig3"><span className="tagp"><s>-50%</s></span></div>
                 </div>
@@ -479,36 +489,36 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section className="s3 grain" id="how">
           <div className="wrap">
             <div className="s3__head">
-              <h2><span className="w300">그래서 우리는,</span><br />일하는 방식이 다릅니다</h2>
+              <h2><span className="w300">{t('process.title_1')}</span><br />{t('process.title_2')}</h2>
               <span className="s3__cnt"><b data-s3now>01</b> / 04</span>
             </div>
             <div className="s3__grid" data-steps>
               <div className="step on">
                 <span className="no">01</span>
-                <h3>기획</h3>
-                <p>요구사항을 화면 목록과 기능 명세로 확정합니다. 여기서 정해진 범위가 모든 판단의 기준선이 됩니다.</p>
-                <span className="out">산출물 — 기획서 · IA · 화면 정의</span>
+                <h3>{t('process.step1_title')}</h3>
+                <p>{t('process.step1_desc')}</p>
+                <span className="out">{t('process.step1_output')}</span>
                 <div className="bar"><i></i></div>
               </div>
               <div className="step">
                 <span className="no">02</span>
-                <h3>디자인 · 목업</h3>
-                <p>기능이 동작하는 가상 사이트(목업)로 확인합니다. 그림이 아니라 실제로 눌러보고 결정합니다.</p>
-                <span className="out">산출물 — 동작 목업 · 디자인 시안</span>
+                <h3>{t('process.step2_title')}</h3>
+                <p>{t('process.step2_desc')}</p>
+                <span className="out">{t('process.step2_output')}</span>
                 <div className="bar"><i></i></div>
               </div>
               <div className="step">
                 <span className="no">03</span>
-                <h3>개발</h3>
-                <p>확정된 시안과 화면상 100% 동일한 완성도로 구현합니다. 검색 최적화 세팅까지 기본입니다.</p>
-                <span className="out">산출물 — 배포 사이트 · SEO 세팅</span>
+                <h3>{t('process.step3_title')}</h3>
+                <p>{t('process.step3_desc')}</p>
+                <span className="out">{t('process.step3_output')}</span>
                 <div className="bar"><i></i></div>
               </div>
               <div className="step">
                 <span className="no">04</span>
-                <h3>검수 · 이관</h3>
-                <p>단계마다 확인을 받고 진행하며, 완료 후 모든 계정과 권한을 안전하게 이전합니다.</p>
-                <span className="out">산출물 — 인계 문서 · 계정 이관</span>
+                <h3>{t('process.step4_title')}</h3>
+                <p>{t('process.step4_desc')}</p>
+                <span className="out">{t('process.step4_output')}</span>
                 <div className="bar"><i></i></div>
               </div>
             </div>
@@ -519,24 +529,24 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section className="s5" id="builders">
           <div className="wrap">
             <div className="s5__head">
-              <h2><span className="w300">개발사를 고르지 마세요.</span><br />맞는 개발자를 매칭해 드립니다</h2>
-              <Link className="btn btn--ghost s5__cta" href="/work#builders" data-track="cta_click" data-location="match_section">어떤 빌더들인지 보러가기 <span className="arr">→</span></Link>
+              <h2><span className="w300">{t('matching.title_1')}</span><br />{t('matching.title_2')}</h2>
+              <Link className="btn btn--ghost s5__cta" href="/work#builders" data-track="cta_click" data-location="match_section">{t('matching.cta_label')} <span className="arr">→</span></Link>
             </div>
             {/* '카드에 마우스를 올려보세요' 안내는 뺐다 — 조작법을 적어두는 건 내부 시연용 문구다.
                 호버·탭 반응은 카드 자체가 알려줘야 한다. */}
-            <p className="t-lead">프로젝트 성격에 맞는 빌더를 선별해 배정합니다.</p>
+            <p className="t-lead">{t('matching.lead')}</p>
             <div className="grid g3">
               <div className="mcard mcard--light" tabIndex={0}>
                 <div className="bg bgi bgi-1"><span className="mring"></span><svg className="mico" viewBox="0 0 96 96" aria-hidden="true"><rect x="8" y="14" width="80" height="64" rx="10" fill="none" stroke="currentColor" strokeWidth="5" /><line x1="8" y1="32" x2="88" y2="32" stroke="currentColor" strokeWidth="5" /><circle cx="20" cy="23" r="3.2" fill="currentColor" /><circle cx="31" cy="23" r="3.2" fill="currentColor" /><rect x="20" y="42" width="34" height="8" rx="4" fill="currentColor" /><rect x="20" y="56" width="22" height="8" rx="4" fill="currentColor" /><path d="M60 50 L78 65 L69 66.5 L64.5 75 Z" fill="currentColor" /></svg><span className="mdeco md1">✳</span><span className="mdeco md2">✦</span></div>
                 <div className="shade"></div>
                 <div className="plus">+</div>
                 <div className="in">
-                  <span className="k">Match — 01</span>
-                  <h3>랜딩 · 웹사이트</h3>
-                  <p className="sub">브랜드 사이트, 수주용 랜딩</p>
+                  <span className="k">{t('matching.card1_kicker')}</span>
+                  <h3>{t('matching.card1_title')}</h3>
+                  <p className="sub">{t('matching.card1_sub')}</p>
                   <div className="detail">
-                    <p>디자인 감도와 인터랙션 구현력이 검증된 빌더가 맡습니다. 전환 트래킹 설계까지 포함합니다.</p>
-                    <span className="who">Builder — Design &amp; Interaction</span>
+                    <p>{t('matching.card1_desc')}</p>
+                    <span className="who">{t('matching.card1_who')}</span>
                   </div>
                 </div>
               </div>
@@ -545,12 +555,12 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
                 <div className="shade"></div>
                 <div className="plus">+</div>
                 <div className="in">
-                  <span className="k">Match — 02</span>
-                  <h3>SaaS · 플랫폼</h3>
-                  <p className="sub">관리자·데이터 구조가 있는 서비스</p>
+                  <span className="k">{t('matching.card2_kicker')}</span>
+                  <h3>{t('matching.card2_title')}</h3>
+                  <p className="sub">{t('matching.card2_sub')}</p>
                   <div className="detail">
-                    <p>데이터 모델링과 권한 설계 경험이 있는 빌더를 배정합니다. 규모가 크면 시니어 개발자와 투트랙으로.</p>
-                    <span className="who">Builder — Data &amp; Architecture</span>
+                    <p>{t('matching.card2_desc')}</p>
+                    <span className="who">{t('matching.card2_who')}</span>
                   </div>
                 </div>
               </div>
@@ -559,12 +569,12 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
                 <div className="shade"></div>
                 <div className="plus">+</div>
                 <div className="in">
-                  <span className="k">Match — 03</span>
-                  <h3>AI 서비스</h3>
-                  <p className="sub">LLM 연동, AI 기능 탑재</p>
+                  <span className="k">{t('matching.card3_kicker')}</span>
+                  <h3>{t('matching.card3_title')}</h3>
+                  <p className="sub">{t('matching.card3_sub')}</p>
                   <div className="detail">
-                    <p>AI API 연동과 프롬프트 설계를 실무로 다뤄본 빌더가 맡습니다. PoC부터 단계적으로 검증합니다.</p>
-                    <span className="who">Builder — LLM &amp; Evaluation</span>
+                    <p>{t('matching.card3_desc')}</p>
+                    <span className="who">{t('matching.card3_who')}</span>
                   </div>
                 </div>
               </div>
@@ -576,59 +586,28 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section id="work">
           <div className="wrap">
             <div className="sec-head">
-              <h2>완성한 프로젝트</h2>
-              <Link className="more-link" href="/work">전체 보기</Link>
+              <h2>{t('work_preview.title')}</h2>
+              <Link className="more-link" href="/work">{t('work_preview.more_label')}</Link>
             </div>
-            <p className="t-lead">실제로 수행한 프로젝트만 올립니다.</p>
+            <p className="t-lead">{t('work_preview.lead')}</p>
+            {/* 실제 발행된 Work 3건 — /admin/works 에서 편집하면 그대로 반영된다.
+                예전엔 가짜 데이터였다(기술 스택 칩에 "실제 프로젝트 사실과 다를 수 있음" 경고 주석이
+                붙어 있었다) — 이제 진짜 데이터라 그 문제 자체가 없어졌다. */}
             <div className="wg">
-              <Link className="wcard" href="/work-detail" data-track="work_card" data-cursor="VIEW →">
-                <div className="slot mask">
-                  <div className="bf"><div className="bf__bar"><i></i><i></i><i></i><span className="url">consult-bot.app</span></div><img className="shot" src="/assets/img/ref-toktokhan.jpg" alt="" /></div>
-                  <div className="par"></div>
-                  <div className="slot__spec"><b>Asset — Work Cover</b><span>실서비스 메인 화면 (브라우저 프레임)</span><em>1520×1045px · 16:11 @2x</em></div>
-                </div>
-                <div className="meta">
-                  <div className="mrow"><span className="tag">AI Service</span><span className="yr num">2026 · 2wks</span></div>
-                  <h3>AI 상담 챗봇 구축</h3>
-                  <p>반복 문의 70%가 몰리던 고객센터의 상담 자동화 — 2주 PoC로 실데이터 검증 후 전환 프로젝트로 확장.</p>
-                  {/* 한 줄 텍스트였는데 테두리 칩으로 나눴다 — 항목 경계가 보여야 읽힌다 */}
-                  <div className="builders"><span>빌더 3인</span><span>Next.js</span><span>LLM API</span></div>
-                </div>
-              </Link>
-              <Link className="wcard" href="/work-detail" data-cursor="VIEW →">
-                <div className="slot mask">
-                  <div className="bf"><div className="bf__bar"><i></i><i></i><i></i><span className="url">brand-landing.kr</span></div><img className="shot" src="/assets/img/ref-builderschool.jpg" alt="" /></div>
-                  <div className="par"></div>
-                  <div className="slot__spec"><b>Asset — Work Cover</b><span>실서비스 히어로 화면</span><em>1520×1140px @2x</em></div>
-                </div>
-                <div className="meta">
-                  <div className="mrow"><span className="tag">Landing</span><span className="yr num">2026 · 3wks</span></div>
-                  <h3>수주용 브랜드 랜딩</h3>
-                  {/* 세 장의 구조를 맞춘다: 설명 한 줄 + 팀·스택 칩.
-                      전에는 '… · 빌더 2인' 처럼 인원이 설명 문장에 섞여 장마다 형태가 달랐다.
-
-                      ⚠ data-sample="stack" — 원문에 기술 스택이 없어 채워 넣은 샘플이다.
-                      실제 프로젝트 사실과 다를 수 있으니 발행 전 확인할 것.
-                      값은 지어내지 않고 사이트의 빌더 프로필에서 가져왔다
-                      (전환 트래킹 → 빌더 리아의 'GA4 설계'). 찾으려면 data-sample 로 grep. */}
-                  <p>수주 문의로 이어지는 흐름까지 설계한 브랜드 랜딩. 전환 트래킹 이벤트 정의를 포함합니다.</p>
-                  <div className="builders" data-sample="stack"><span>빌더 2인</span><span>Next.js</span><span>GA4</span></div>
-                </div>
-              </Link>
-              <Link className="wcard" href="/work-detail" data-cursor="VIEW →">
-                <div className="slot mask">
-                  <div className="bf"><div className="bf__bar"><i></i><i></i><i></i><span className="url">cms.studio.io</span></div><img className="shot" src="/assets/img/ref-codle.jpg" alt="" /></div>
-                  <div className="par"></div>
-                  <div className="slot__spec"><b>Asset — Work Cover</b><span>관리자 콘솔 화면</span><em>1520×855px · 16:9 @2x</em></div>
-                </div>
-                <div className="meta">
-                  <div className="mrow"><span className="tag">Platform</span><span className="yr num">2026 · 6wks</span></div>
-                  <h3>콘텐츠 관리 플랫폼</h3>
-                  <p>비개발자도 운영 가능한 관리자·에디터. 발행 워크플로와 권한 설계 포함.</p>
-                  {/* ⚠ 샘플 — 위 02 주석 참조 (권한 설계 → 빌더 도현의 'Supabase · RBAC') */}
-                  <div className="builders" data-sample="stack"><span>빌더 3인</span><span>Supabase</span><span>RBAC</span></div>
-                </div>
-              </Link>
+              {previewWorks.map(p => (
+                <Link className="wcard" href={`/work/${p.slug}`} data-track="work_card" data-cursor="VIEW →" key={p.slug}>
+                  <div className="slot mask">
+                    <div className="bf"><div className="bf__bar"><i></i><i></i><i></i><span className="url">{p.slug}</span></div><img className="shot" src={p.thumbUrl ?? ''} alt="" /></div>
+                    <div className="par"></div>
+                  </div>
+                  <div className="meta">
+                    <div className="mrow"><span className="tag">{p.tagLabel}</span><span className="yr num">{p.year}</span></div>
+                    <h3>{p.title}</h3>
+                    <p>{p.summary}</p>
+                    {p.withTeamLabel && <div className="builders"><span>{p.withTeamLabel}</span></div>}
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
@@ -637,28 +616,18 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section className="s7">
           <div className="wrap">
             <div className="sec-head">
-              <h2>우리의 생각</h2>
-              <Link className="more-link" href="/insight">전체 보기</Link>
+              <h2>{t('insight_preview.title')}</h2>
+              <Link className="more-link" href="/insight">{t('insight_preview.more_label')}</Link>
             </div>
-            {/* ⚠ data-sample="thumb" — /insight 목록의 썸네일을 주제가 가까운 것으로 빌려 왔다.
-                그 이미지들에는 각자 다른 글 제목이 박혀 있어서, 이 크기(96×64)에서는 질감으로만
-                읽히지만 확대하면 문구가 어긋난다. 글마다 전용 썸네일이 생기면 교체할 것.
-                찾으려면 grep -rn 'data-sample' app/ */}
-            <Link className="irow" href="/insight-detail">
-              <img className="ithumb" data-sample="thumb" src="/assets/img/ins/ins-turnkey.jpg" alt="" loading="lazy" decoding="async" />
-              <span className="t">바이브 코딩 외주, 잘하는 곳과 못하는 곳의 차이</span>
-              <span className="meta"><span className="tag">발주 가이드</span><span className="d num">2026.08.11</span></span>
-            </Link>
-            <Link className="irow" href="/insight-detail">
-              <img className="ithumb" data-sample="thumb" src="/assets/img/ins/ins-native.jpg" alt="" loading="lazy" decoding="async" />
-              <span className="t">우리가 3주 만에 랜딩 페이지를 만드는 순서</span>
-              <span className="meta"><span className="tag">일하는 방식</span><span className="d num">2026.08.09</span></span>
-            </Link>
-            <Link className="irow" href="/insight-detail">
-              <img className="ithumb" data-sample="thumb" src="/assets/img/ins/ins-poc.jpg" alt="" loading="lazy" decoding="async" />
-              <span className="t">새 AI 툴을 실무에 붙일 때 우리가 확인하는 것들</span>
-              <span className="meta"><span className="tag">AI 활용</span><span className="d num">2026.08.07</span></span>
-            </Link>
+            {/* 실제 발행된 Insight 3건 — 예전엔 /insight 목록에서 빌려 온 남의 썸네일(제목이 안 맞는)을
+                썼다. /admin/insights 에서 편집하면 그대로 반영된다. */}
+            {previewInsights.map(a => (
+              <Link className="irow" href={`/insight/${a.slug}`} key={a.slug}>
+                <img className="ithumb" src={a.thumbUrl ?? ''} alt="" loading="lazy" decoding="async" />
+                <span className="t">{a.title}</span>
+                <span className="meta"><span className="tag">{a.categoryName}</span><span className="d num">{a.publishedLabel}</span></span>
+              </Link>
+            ))}
           </div>
         </section>
 
@@ -669,7 +638,7 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
             <use href="#rsepB" className="edge" />
             <use href="#rsepB" className="lane" />
             <text>
-              <textPath href="#rsepB" data-wflow data-unit="4" data-speed="0.02">VIBE CODING ✳ 검증된 빌더 ✳ AI BUILDER GROUP ✳ 외주를 해드립니다 ✳ VIBE CODING ✳ 검증된 빌더 ✳ AI BUILDER GROUP ✳ 외주를 해드립니다 ✳ </textPath>
+              <textPath href="#rsepB" data-wflow data-unit="4" data-speed="0.02">{ribbonB[0]}{ribbonB[0]}</textPath>
             </text>
           </svg>
         </div>
@@ -678,32 +647,31 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section className="s8 grain">
           <div className="wrap">
             <div className="sec-head">
-              <h2>영상으로 보는 우리의 작업</h2>
-              <Link className="more-link" href="/content">콘텐츠 탭</Link>
+              <h2>{t('content_preview.title')}</h2>
+              <Link className="more-link" href="/content">{t('content_preview.more_label')}</Link>
             </div>
-            <p className="t-lead">세 채널에서 매주 실전 바이브 코딩 콘텐츠가 올라옵니다.</p>
+            <p className="t-lead">{t('content_preview.lead')}</p>
+            {/* 피처드 + 최근 영상 2건 — /admin/content 에서 편집하면 그대로 반영된다. */}
             <div className="vgrid">
-              <div className="vcell slot" data-expand data-track="youtube_outbound" data-slug="featured">
-                <img className="vimg" src="https://i.ytimg.com/vi/0dBSo3eDE-E/hqdefault.jpg" alt="똑똑한개발자 — 2025 상반기 워크샵" loading="lazy" />
-                <div className="vshade"></div>
-                <span className="dur num">15:47</span>
-                <div className="play"><i>▶</i></div>
-                <div className="cap"><b>2025 똑똑한개발자 상반기 워크샵</b><span>똑똑한개발자 · 오피셜</span></div>
-                <div className="slot__spec"><b>Asset — YouTube</b><span>유튜브 썸네일 원본으로 교체</span><em>1280×720px · 16:9</em></div>
-              </div>
+              {previewFeatured && (
+                <div className="vcell slot" data-expand data-track="youtube_outbound" data-slug="featured">
+                  <img className="vimg" src={`https://i.ytimg.com/vi/${previewFeatured.youtubeId}/hqdefault.jpg`} alt={previewFeatured.title} loading="lazy" />
+                  <div className="vshade"></div>
+                  {previewFeatured.durationLabel && <span className="dur num">{previewFeatured.durationLabel}</span>}
+                  <div className="play"><i>▶</i></div>
+                  <div className="cap"><b>{previewFeatured.title}</b>{previewFeatured.channelName && <span>{previewFeatured.channelName}</span>}</div>
+                </div>
+              )}
               <div className="vside">
-                <div className="vcell slot" data-expand style={{ aspectRatio: '16/8' }}>
-                  <img className="vimg" src="https://i.ytimg.com/vi/ZIn53VIic14/hqdefault.jpg" alt="김이솝 — AI 동물 인터뷰 쇼츠 만들기" loading="lazy" />
-                  <div className="vshade"></div>
-                  <span className="dur num">7:57</span><div className="play"><i>▶</i></div>
-                  <div className="cap"><b>AI 동물 인터뷰 쇼츠 만들기 7분만에 끝!</b></div>
-                </div>
-                <div className="vcell slot" data-expand style={{ aspectRatio: '16/8' }}>
-                  <img className="vimg" src="https://i.ytimg.com/vi/TP6ArUCnt8c/hqdefault.jpg" alt="똑똑한개발자 — 원티드 하이파이브 컨퍼런스" loading="lazy" />
-                  <div className="vshade"></div>
-                  <span className="dur num">17:36</span><div className="play"><i>▶</i></div>
-                  <div className="cap"><b>잘봐 이게 컨퍼런스다 — 똑똑한개발자 × 원티드</b></div>
-                </div>
+                {previewSideVideos.map(v => (
+                  <div className="vcell slot" data-expand style={{ aspectRatio: '16/8' }} key={v.id}>
+                    <img className="vimg" src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`} alt={v.title} loading="lazy" />
+                    <div className="vshade"></div>
+                    {v.durationLabel && <span className="dur num">{v.durationLabel}</span>}
+                    <div className="play"><i>▶</i></div>
+                    <div className="cap"><b>{v.title}</b></div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -713,10 +681,10 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section className="s9" id="faq">
           <div className="wrap">
             <div className="sec-head">
-              <h2>자주 묻는 질문</h2>
-              <Link className="more-link" href="/faq">전체 보기</Link>
+              <h2>{t('faq_preview.title')}</h2>
+              <Link className="more-link" href="/faq">{t('faq_preview.more_label')}</Link>
             </div>
-            <p className="t-lead">문의 전에 가장 많이 받는 질문을 모았습니다.</p>
+            <p className="t-lead">{t('faq_preview.lead')}</p>
             {/* 데이터는 lib/data/faq.ts 에서 온다 — /faq 페이지와 같은 원본(관리자 화면에서 편집) */}
             <FaqList topics={faqHome} />
           </div>
@@ -728,9 +696,9 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
         <section className="s10">
           <div className="wrap">
             <span className="ast" aria-hidden="true">✳</span>
-            <h2><span className="w300">만들고 싶은 것이</span><br />있으신가요?</h2>
-            <p>지금 프로젝트를 문의해 주세요. 빠르게 연락드립니다.</p>
-            <Link className="btn btn--lime" href="/contact" data-track="cta_click" data-location="footer_cta" style={{ fontSize: 17, padding: '18px 38px' }}>프로젝트 문의 <span className="arr">→</span></Link>
+            <h2><span className="w300">{t('final_cta.title_1')}</span><br />{t('final_cta.title_2')}</h2>
+            <p>{t('final_cta.body')}</p>
+            <Link className="btn btn--lime" href="/contact" data-track="cta_click" data-location="footer_cta" style={{ fontSize: 17, padding: '18px 38px' }}>{t('final_cta.button')} <span className="arr">→</span></Link>
           </div>
         </section>
 
@@ -738,8 +706,8 @@ export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
 
       {/* 플로팅 CTA 독 — 히어로 CTA와 화면상 비중복 (히어로/최종CTA 노출 시 숨김) */}
       <div className="dock" data-dock>
-        <div className="dock__txt"><b>검증된 바이브 코딩</b><span>무료 문의 — 부담 없이 남겨보세요</span></div>
-        <Link className="btn btn--lime btn--sm" href="/contact" data-track="cta_click" data-location="floating">프로젝트 문의 <span className="arr">→</span></Link>
+        <div className="dock__txt"><b>{t('dock.title')}</b><span>{t('dock.subtitle')}</span></div>
+        <Link className="btn btn--lime btn--sm" href="/contact" data-track="cta_click" data-location="floating">{t('dock.button')} <span className="arr">→</span></Link>
         <button className="dock__x" aria-label="닫기" data-dock-x>✕</button>
       </div>
       <button className="dock-open" data-dock-open aria-label="문의 바 다시 열기">💬</button>
