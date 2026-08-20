@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, type CSSProperties } from 'react'
 import { useRibbonFlow, useReplayOnView, useAccordion } from '@/components/fx'
 import FaqList from '@/components/FaqList'
-import { FAQ_HOME } from './_faq'
+import type { FaqTopic } from './_faq'
 
 /* 스테퍼 점등 순서를 CSS 변수로 넘긴다 (CSS 커스텀 속성이라 캐스트가 필요하다) */
 const step = (i: number) => ({ '--i': i }) as CSSProperties
@@ -118,7 +118,7 @@ function Bset({ brands }: { brands: [string, string][] }) {
   )
 }
 
-export default function HomeView() {
+export default function HomeView({ faqHome }: { faqHome: FaqTopic[] }) {
   /* v19.5 이음새 리본 — 문구 덱 로테이션(페이드 전환) + 곡선 흐름.
      구현은 components/fx.ts 의 useRibbonFlow 한 곳으로 모았다 — 전에는 같은 스크립트가
      여기에 통째로 복제돼 있어서 성능 수정을 두 군데 해야 했다. */
@@ -717,8 +717,8 @@ export default function HomeView() {
               <Link className="more-link" href="/faq">전체 보기</Link>
             </div>
             <p className="t-lead">문의 전에 가장 많이 받는 질문을 모았습니다.</p>
-            {/* 데이터는 app/_faq.ts 한 곳에서 온다 — /faq 페이지와 같은 원본 */}
-            <FaqList topics={FAQ_HOME} />
+            {/* 데이터는 lib/data/faq.ts 에서 온다 — /faq 페이지와 같은 원본(관리자 화면에서 편집) */}
+            <FaqList topics={faqHome} />
           </div>
         </section>
 

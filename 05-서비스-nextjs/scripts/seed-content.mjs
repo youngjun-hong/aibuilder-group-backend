@@ -108,6 +108,29 @@ const VIDEOS = [
   { yt: 'gtZPILhrnl8', ch: 'AI 서대표', dur: '13:48', title: '오르카(Orca) 설치부터 AI 블로그 자동화 세팅까지', sub: 'NEW' },
 ]
 
+/* ── app/_faq.ts 의 FAQ ── */
+const FAQ_TOPICS = [
+  { key: 'inquiry', label: '외주 문의', sort: 0 },
+  { key: 'process', label: '진행 방식', sort: 1 },
+]
+const FAQ_ITEMS = {
+  inquiry: [
+    { q: '바이브 코딩으로 만들면 품질이 괜찮나요?', a: '도구가 아니라 만드는 사람이 품질을 결정합니다. 우리는 교육을 수료하고 검증된 빌더만 배정하고, 전용 시스템으로 진행 과정을 관리해 결과물을 상향 평준화합니다.', home: true },
+    { q: '기간은 얼마나 걸리나요?', a: '규모에 따라 다르지만, 랜딩 페이지 기준 제작 2주 + 환경 세팅·이관 1주가 일반적입니다. 기획 단계에서 일정을 확정해 드립니다.', home: true },
+    { q: '어떤 개발자가 작업하나요?', a: '프로젝트 성격에 맞는 빌더를 선별해 배정합니다. 규모가 큰 프로젝트는 시니어 개발자가 함께 투입되는 투트랙으로 진행합니다.', home: true },
+    { q: '상담과 견적도 비용이 드나요?', a: '상담과 견적 산정은 무료입니다. 문의를 남겨 주시면 24시간 안에 회신드립니다.', home: false },
+    { q: '어떤 빌더가 맞을지 모르겠습니다.', a: 'Work 페이지의 빠른 매칭에서 세 가지만 고르면 프로젝트에 맞는 빌더를 추천해 드립니다. 30초면 충분합니다.', home: false },
+    { q: 'NDA 작성이 가능한가요?', a: '가능합니다. 착수 전에 비밀유지계약을 맺고 진행할 수 있습니다.', home: false },
+  ],
+  process: [
+    { q: '진행 단계는 어떻게 되나요?', a: '기획 → 디자인(목업) → 개발 순서로 진행하며, 각 단계마다 확인을 받고 다음으로 넘어갑니다. 디자인 단계에서는 실제로 눌러볼 수 있는 목업을 드립니다.', home: true },
+    { q: '수정 요청은 어디까지 가능한가요?', a: '문구·이미지 교체 같은 경미한 수정은 범위 내에서 반영합니다. 화면 추가나 기능 변경은 일정·비용과 함께 별도로 안내드립니다.', home: true },
+    { q: '완료 후 유지보수는요?', a: '납품 후 30일 무상 하자보수가 기본입니다. 이후 기능 추가·운영 관리는 별도 유지보수 계약으로 진행합니다.', home: true },
+    { q: '결과물 검수는 누가 하나요?', a: '빌더가 만든 결과물을 9년차 기준으로 심사하고, 통과한 것만 전달합니다. 대충 만든 결과물은 통과하지 못합니다.', home: false },
+    { q: '작업 중간에 진행 상황을 볼 수 있나요?', a: '단계마다 확인을 받고 넘어갑니다. 디자인 단계에서는 동작하는 목업을, 개발 단계에서는 실제 화면을 보시게 됩니다.', home: false },
+  ],
+}
+
 function escapeHtml(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
@@ -221,8 +244,36 @@ async function main() {
   if (vErr) throw vErr
   console.log(`   ${upsertedVideos.length}건 upsert 완료`)
 
+  console.log('8) faq_topics upsert...')
+  const { data: upsertedTopics, error: ftErr } = await db
+    .from('faq_topics').upsert(FAQ_TOPICS, { onConflict: 'key' }).select('id, key')
+  if (ftErr) throw ftErr
+  const topicId = (key) => upsertedTopics.find(t => t.key === key)?.id ?? null
+  console.log(`   ${upsertedTopics.length}개 upsert 완료`)
+
+  console.log('9) faq_items upsert...')
+  const { data: existingFaqItems } = await db.from('faq_items').select('id, topic_id, question')
+  const faqItemRows = Object.entries(FAQ_ITEMS).flatMap(([topicKey, items]) =>
+    items.map((it, i) => {
+      const tId = topicId(topicKey)
+      const existing = existingFaqItems?.find(e => e.topic_id === tId && e.question === it.q)
+      return {
+        ...(existing ? { id: existing.id } : {}),
+        topic_id: tId,
+        question: it.q,
+        answer: it.a,
+        show_on_home: it.home,
+        is_active: true,
+        sort: i,
+      }
+    }),
+  )
+  const { data: upsertedFaqItems, error: fiErr } = await db.from('faq_items').upsert(faqItemRows).select('id')
+  if (fiErr) throw fiErr
+  console.log(`   ${upsertedFaqItems.length}건 upsert 완료`)
+
   console.log('\n완료:')
-  console.log(`  builders: ${upsertedBuilders.length} / works: ${upsertedWorks.length} / work_builders: ${wbRows.length} / insights: ${upsertedInsights.length} / channels: ${upsertedChannels.length} / videos: ${upsertedVideos.length}`)
+  console.log(`  builders: ${upsertedBuilders.length} / works: ${upsertedWorks.length} / work_builders: ${wbRows.length} / insights: ${upsertedInsights.length} / channels: ${upsertedChannels.length} / videos: ${upsertedVideos.length} / faq_topics: ${upsertedTopics.length} / faq_items: ${upsertedFaqItems.length}`)
 }
 
 main().catch(err => { console.error(err); process.exit(1) })

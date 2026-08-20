@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import FaqList from '@/components/FaqList'
-import { FAQ } from '@/app/_faq'
+import type { FaqTopic } from '@/app/_faq'
 import { useDock, useRibbonFlow } from '@/components/fx'
 
-export default function FaqView() {
+export default function FaqView({ topics }: { topics: FaqTopic[] }) {
   useRibbonFlow({
     rsF: [
       '무엇이든 물어보세요 ✳ 상담·견적 무료 ✳ 24시간 내 회신 ✳ ',
@@ -40,8 +40,8 @@ export default function FaqView() {
 
         <section className="faqpage">
           <div className="wrap">
-            {/* 데이터는 app/_faq.ts 한 곳에서 온다 — 홈 프리뷰와 같은 원본 */}
-            <FaqList topics={FAQ} expandAll />
+            {/* 데이터는 lib/data/faq.ts 에서 온다 — 홈 프리뷰와 같은 원본(관리자 화면에서 편집) */}
+            <FaqList topics={topics} expandAll />
 
             <div className="faq-cta">
               <div>
