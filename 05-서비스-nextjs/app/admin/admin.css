@@ -18,14 +18,47 @@
   content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--lime);
   outline: 1.5px solid var(--ink); outline-offset: 1.5px; flex: none;
 }
-.admin-header nav { display: flex; gap: 4px; }
+.admin-header nav { display: flex; gap: 4px; align-items: center; }
 .admin-header nav a {
+  display: inline-flex; align-items: center; gap: 7px; border: 1px solid transparent;
   padding: 8px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: var(--muted);
-  text-decoration: none; transition: var(--hover);
+  text-decoration: none;
+  transition: background var(--hover), color var(--hover), border-color var(--hover), transform var(--hover), box-shadow var(--hover);
 }
-.admin-header nav a:hover { background: var(--paper-3); color: var(--ink); }
-.admin-header nav a.on { background: var(--ink); color: var(--paper); }
-.nav-ext__arr { font-size: 11px; opacity: .55; margin-left: 1px; }
+.admin-header nav a::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; flex: none; background: var(--nav-dot, var(--line-2));
+  transition: background var(--hover);
+}
+.admin-header nav a:hover { background: var(--paper-3); color: var(--ink); transform: translateY(-1.5px); box-shadow: 0 4px 12px rgba(14,14,12,.08); }
+.admin-header nav a.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.admin-header nav a.on::before { background: var(--lime); }
+
+/* 카테고리별 점 색 — DashboardCharts.tsx 의 차트 팔레트(PIE_COLORS)와 같은 어휘를 재사용해
+   새 색을 도입하지 않는다. Dashboard·문의는 점 색과 별개로 평상시에도 눈에 띄는 배경을 얹는다. */
+.admin-header nav a[data-nav="home"] { --nav-dot: #8BA83D; }
+.admin-header nav a[data-nav="insight"] { --nav-dot: #B2C947; }
+.admin-header nav a[data-nav="work"] { --nav-dot: #4A4A3E; }
+.admin-header nav a[data-nav="content"] { --nav-dot: #66655C; }
+.admin-header nav a[data-nav="faq"] { --nav-dot: #C7C5B9; }
+.admin-header nav a[data-nav="builders"] { --nav-dot: #8BA83D; }
+.admin-header nav a[data-nav="approvals"] { --nav-dot: var(--ink); }
+
+.admin-header nav a[data-nav="dashboard"] {
+  --nav-dot: var(--ink);
+  background: color-mix(in srgb, var(--lime) 22%, transparent);
+  border-color: color-mix(in srgb, var(--lime) 60%, transparent);
+  color: var(--ink);
+}
+.admin-header nav a[data-nav="dashboard"]:hover { background: color-mix(in srgb, var(--lime) 38%, transparent); }
+.admin-header nav a[data-nav="dashboard"].on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.admin-header nav a[data-nav="dashboard"].on::before { background: var(--lime); }
+
+.admin-header nav a[data-nav="contact"] {
+  --nav-dot: var(--lime); background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 800;
+}
+.admin-header nav a[data-nav="contact"]:hover { background: #2A2A22; transform: translateY(-1.5px); box-shadow: 0 4px 12px rgba(14,14,12,.2); }
+
+.nav-ext__arr { font-size: 11px; opacity: .7; margin-left: -2px; }
 .admin-header .who { display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
 .admin-header .who b { color: var(--ink); font-family: var(--sans); font-weight: 700; }
 .admin-header form { margin: 0; }
@@ -219,3 +252,27 @@
   letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border: 1px dashed var(--line-2);
   border-radius: 999px; padding: 2px 8px; vertical-align: middle;
 }
+
+/* 최근 활동 피드 — 생성(라임 채움)·수정(뉴트럴 프로스티드)·삭제(점선) 배지는
+   .admin-badge 어휘(발행/승인대기/반려)를 그대로 재적용한 것이다. */
+.admin-activity { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.admin-activity__row {
+  display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line);
+}
+.admin-activity__row:last-child { border-bottom: none; }
+.admin-activity__action {
+  flex: none; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-2);
+}
+.admin-activity__action--created { background: var(--lime); color: var(--ink); border-color: var(--ink); }
+.admin-activity__action--updated { background: var(--ink); color: var(--lime); border-color: var(--ink); }
+.admin-activity__action--deleted { background: transparent; color: var(--muted-2); border-style: dashed; }
+.admin-activity__entity {
+  flex: none; width: 56px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--muted-2);
+}
+.admin-activity__title {
+  flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.admin-activity__meta { flex: none; font-family: var(--mono); font-size: 11.5px; color: var(--muted); white-space: nowrap; }

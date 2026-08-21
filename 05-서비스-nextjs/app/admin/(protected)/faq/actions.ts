@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/session'
+import { logActivity } from '@/lib/activityLog'
 
 function revalidateFaq() {
   revalidatePath('/')
@@ -13,7 +14,7 @@ function revalidateFaq() {
 export type FaqFormState = { error: string | null }
 
 export async function saveFaqItem(_prev: FaqFormState, formData: FormData): Promise<FaqFormState> {
-  await requireAdmin()
+  const builder = await requireAdmin()
   const id = String(formData.get('id') ?? '')
   const topicId = String(formData.get('topic_id') ?? '')
   const question = String(formData.get('question') ?? '').trim()
@@ -33,6 +34,7 @@ export async function saveFaqItem(_prev: FaqFormState, formData: FormData): Prom
       .eq('id', id)
     if (error) return { error: '저장에 실패했습니다: ' + error.message }
     revalidateFaq()
+    await logActivity('faq_item', id, question, 'updated', builder.name)
     return { error: null }
   }
 
@@ -43,12 +45,13 @@ export async function saveFaqItem(_prev: FaqFormState, formData: FormData): Prom
     .order('sort', { ascending: false })
     .limit(1)
     .maybeSingle()
-  const { error } = await supabase.from('faq_items').insert({
+  const { data, error } = await supabase.from('faq_items').insert({
     topic_id: topicId, question, answer, show_on_home: showOnHome,
     is_active: true, sort: (maxSort?.sort ?? -1) + 1,
-  })
-  if (error) return { error: '저장에 실패했습니다: ' + error.message }
+  }).select('id').single()
+  if (error || !data) return { error: '저장에 실패했습니다: ' + (error?.message ?? '') }
   revalidateFaq()
+  await logActivity('faq_item', data.id, question, 'created', builder.name)
   redirect('/admin/faq')
 }
 
@@ -61,9 +64,11 @@ export async function toggleFaqItemActive(id: string, isActive: boolean) {
 }
 
 export async function deleteFaqItem(id: string) {
-  await requireAdmin()
+  const builder = await requireAdmin()
   const supabase = await createClient()
+  const { data: row } = await supabase.from('faq_items').select('question').eq('id', id).maybeSingle()
   const { error } = await supabase.from('faq_items').delete().eq('id', id)
   if (error) throw new Error(error.message)
   revalidateFaq()
+  if (row) await logActivity('faq_item', id, row.question, 'deleted', builder.name)
 }

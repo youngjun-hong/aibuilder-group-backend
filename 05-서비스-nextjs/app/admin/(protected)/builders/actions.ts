@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/auth/session'
 import { validateSlugFormat } from '@/lib/content/slug'
 import { isBuilderSlugTaken, isBuilderEmailTaken, getBuilderByIdForAdmin } from '@/lib/data/builders'
 import { revalidateBuilder } from '@/lib/revalidate'
+import { logActivity } from '@/lib/activityLog'
 import type { BuilderRole } from '@/lib/types'
 
 export type CreateBuilderState = { error: string | null; tempPassword?: string }
@@ -25,7 +26,7 @@ function assertNotSelfLockout(me: { id: string }, targetId: string, patch: { rol
 
 /** 신규 계정 발급(A-06) — auth.users 생성 + builders row insert. 임시 비밀번호는 한 번만 반환된다. */
 export async function createBuilder(_prev: CreateBuilderState, formData: FormData): Promise<CreateBuilderState> {
-  await requireAdmin()
+  const me = await requireAdmin()
   const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const name = String(formData.get('name') ?? '').trim()
   const slug = String(formData.get('slug') ?? '').trim()
@@ -47,7 +48,7 @@ export async function createBuilder(_prev: CreateBuilderState, formData: FormDat
   })
   if (authError || !authUser.user) return { error: '계정 생성에 실패했습니다: ' + (authError?.message ?? '') }
 
-  const { error } = await service.from('builders').insert({
+  const { data, error } = await service.from('builders').insert({
     auth_user_id: authUser.user.id,
     slug,
     name,
@@ -55,13 +56,14 @@ export async function createBuilder(_prev: CreateBuilderState, formData: FormDat
     role,
     role_label: roleLabel,
     is_active: true,
-  })
-  if (error) {
+  }).select('id').single()
+  if (error || !data) {
     await service.auth.admin.deleteUser(authUser.user.id) // builders row 없이 auth 계정만 남는 상태 방지
-    return { error: '저장에 실패했습니다: ' + error.message }
+    return { error: '저장에 실패했습니다: ' + (error?.message ?? '') }
   }
 
   revalidateBuilder()
+  await logActivity('builder', data.id, name, 'created', me.name)
   return { error: null, tempPassword }
 }
 

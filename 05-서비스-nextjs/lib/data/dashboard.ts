@@ -11,6 +11,14 @@ export type StatusCount = { status: ContentStatus; count: number }
 export type WeeklyPublishPoint = { weekLabel: string; works: number; insights: number }
 export type AgingBucket = { label: string; count: number }
 export type NameCount = { name: string; count: number }
+export type ActivityEntry = {
+  id: string
+  entityType: 'work' | 'insight' | 'video' | 'faq_item' | 'builder'
+  title: string
+  action: 'created' | 'updated' | 'deleted'
+  actorName: string | null
+  createdAt: string
+}
 
 export type InternalDashboardStats = {
   totals: { works: number; insights: number; pending: number; buildersActive: number; buildersTotal: number }
@@ -44,6 +52,25 @@ function countByName(rows: (string | null)[]): NameCount[] {
     map.set(name, (map.get(name) ?? 0) + 1)
   }
   return [...map.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
+}
+
+/** 대시보드 "최근 활동" 피드 — activity_log 최신순 N건. */
+export async function getRecentActivity(limit = 12): Promise<ActivityEntry[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('activity_log')
+    .select('id, entity_type, title, action, actor_name, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return (data ?? []).map(r => ({
+    id: r.id,
+    entityType: r.entity_type,
+    title: r.title,
+    action: r.action,
+    actorName: r.actor_name,
+    createdAt: r.created_at,
+  }))
 }
 
 export async function getInternalDashboardStats(): Promise<InternalDashboardStats> {

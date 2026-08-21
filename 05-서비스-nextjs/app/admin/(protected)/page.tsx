@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation'
 import { requireActiveBuilder } from '@/lib/auth/session'
-import { getInternalDashboardStats } from '@/lib/data/dashboard'
+import { getInternalDashboardStats, getRecentActivity } from '@/lib/data/dashboard'
 import { getGa4Overview } from '@/lib/google/ga4'
 import { getSearchConsoleOverview } from '@/lib/google/searchConsole'
 import {
   StatCards, FunnelChart, PublishTrendChart, PendingAgingChart, BuilderActivityChart,
-  CategoryDonuts, FaqTopicChart, Ga4Section, SearchConsoleSection,
+  CategoryDonuts, FaqTopicChart, Ga4Section, SearchConsoleSection, RecentActivityPanel,
 } from './DashboardCharts'
 
 /* 사용자 요청으로 신설한 화면(원 PRD엔 없음, app/admin/(protected)/layout.tsx 주석 참고).
@@ -15,8 +15,9 @@ export default async function AdminDashboardPage() {
   const builder = await requireActiveBuilder()
   if (builder.role !== 'admin') redirect('/admin/insights')
 
-  const [stats, ga4, gsc] = await Promise.all([
+  const [stats, activity, ga4, gsc] = await Promise.all([
     getInternalDashboardStats(),
+    getRecentActivity(),
     getGa4Overview(),
     getSearchConsoleOverview(),
   ])
@@ -27,6 +28,10 @@ export default async function AdminDashboardPage() {
       <p className="sub">콘텐츠 운영 현황과 실측 트래픽을 한눈에 봅니다.</p>
 
       <StatCards stats={stats} />
+
+      <div className="admin-dash-grid admin-dash-grid--full">
+        <RecentActivityPanel activity={activity} />
+      </div>
 
       <div className="admin-dash-grid">
         <FunnelChart stats={stats} />

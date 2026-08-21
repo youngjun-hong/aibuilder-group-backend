@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, AreaChart, Area,
   PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
-import type { InternalDashboardStats } from '@/lib/data/dashboard'
+import type { InternalDashboardStats, ActivityEntry } from '@/lib/data/dashboard'
 import type { Ga4Overview } from '@/lib/google/ga4'
 import type { SearchConsoleOverview } from '@/lib/google/searchConsole'
 
@@ -105,6 +105,48 @@ export function StatCards({ stats }: { stats: InternalDashboardStats }) {
         </div>
       ))}
     </div>
+  )
+}
+
+const ACTIVITY_ENTITY_LABEL: Record<ActivityEntry['entityType'], string> = {
+  work: 'Work', insight: 'Insight', video: 'Content', faq_item: 'FAQ', builder: 'Builder',
+}
+const ACTIVITY_ACTION_LABEL: Record<ActivityEntry['action'], string> = {
+  created: '생성', updated: '수정', deleted: '삭제',
+}
+
+function timeAgo(iso: string): string {
+  const diffMin = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000)
+  if (diffMin < 1) return '방금 전'
+  if (diffMin < 60) return `${diffMin}분 전`
+  const diffHr = Math.floor(diffMin / 60)
+  if (diffHr < 24) return `${diffHr}시간 전`
+  const diffDay = Math.floor(diffHr / 24)
+  if (diffDay < 30) return `${diffDay}일 전`
+  const d = new Date(iso)
+  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`
+}
+
+/* 대시보드 "최근 활동" — activity_log 최신순 피드. 삭제된 항목은 대상 행이 이미 없으므로
+   링크하지 않고 제목 텍스트만 보여준다(로그 자체가 유일한 흔적). */
+export function RecentActivityPanel({ activity }: { activity: ActivityEntry[] }) {
+  return (
+    <Panel title="최근 활동" sub="생성 · 수정 · 삭제 이력 최신순">
+      {activity.length === 0 ? (
+        <p className="sub">아직 기록된 활동이 없습니다.</p>
+      ) : (
+        <ul className="admin-activity">
+          {activity.map(a => (
+            <li key={a.id} className="admin-activity__row">
+              <span className={`admin-activity__action admin-activity__action--${a.action}`}>{ACTIVITY_ACTION_LABEL[a.action]}</span>
+              <span className="admin-activity__entity">{ACTIVITY_ENTITY_LABEL[a.entityType]}</span>
+              <span className="admin-activity__title">{a.title}</span>
+              <span className="admin-activity__meta">{a.actorName ?? '—'} · {timeAgo(a.createdAt)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
   )
 }
 

@@ -7,6 +7,7 @@ import { assertTransition } from '@/lib/content/state-machine'
 import { validateSlugFormat, recordRedirectOnSlugChange, recordRedirectOnArchive, clearRedirectOnRestore } from '@/lib/content/slug'
 import { isWorkSlugTaken, getWorkByIdForAdmin } from '@/lib/data/works'
 import { revalidateWork } from '@/lib/revalidate'
+import { logActivity } from '@/lib/activityLog'
 import type { ContentStatus } from '@/lib/types'
 
 export type WorkFormState = { error: string | null }
@@ -82,6 +83,7 @@ export async function saveWork(_prev: WorkFormState, formData: FormData): Promis
     }
     revalidateWork(existing.slug)
     revalidateWork(slug)
+    await logActivity('work', id, title, 'updated', builder.name)
     return { error: null }
   }
 
@@ -99,6 +101,7 @@ export async function saveWork(_prev: WorkFormState, formData: FormData): Promis
     .single()
   if (error || !data) return { error: '저장에 실패했습니다: ' + (error?.message ?? '') }
   await syncWorkBuilders(data.id, builderEntries)
+  await logActivity('work', data.id, title, 'created', builder.name)
   redirect(`/admin/works/${data.id}`)
 }
 
@@ -146,10 +149,13 @@ export async function restoreWork(id: string) {
 }
 
 export async function deleteWork(id: string) {
-  await requireAdmin()
+  const builder = await requireAdmin()
   const supabase = await createClient()
   const row = await getWorkByIdForAdmin(id)
   const { error } = await supabase.from('works').delete().eq('id', id)
   if (error) throw new Error(error.message)
-  if (row) revalidateWork(row.slug)
+  if (row) {
+    revalidateWork(row.slug)
+    await logActivity('work', id, row.title, 'deleted', builder.name)
+  }
 }

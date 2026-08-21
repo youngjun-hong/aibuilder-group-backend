@@ -8,6 +8,7 @@ import { sanitizeInsightBody } from '@/lib/content/sanitize'
 import { validateSlugFormat, recordRedirectOnSlugChange, recordRedirectOnArchive, clearRedirectOnRestore } from '@/lib/content/slug'
 import { isInsightSlugTaken, getInsightByIdForAdmin } from '@/lib/data/insights'
 import { revalidateInsight } from '@/lib/revalidate'
+import { logActivity } from '@/lib/activityLog'
 import type { ContentStatus } from '@/lib/types'
 
 export type InsightFormState = { error: string | null }
@@ -57,6 +58,7 @@ export async function saveInsight(_prev: InsightFormState, formData: FormData): 
     }
     revalidateInsight(existing.slug)
     revalidateInsight(slug)
+    await logActivity('insight', id, title, 'updated', builder.name)
     return { error: null }
   }
 
@@ -71,6 +73,7 @@ export async function saveInsight(_prev: InsightFormState, formData: FormData): 
     .select('id')
     .single()
   if (error || !data) return { error: '저장에 실패했습니다: ' + (error?.message ?? '') }
+  await logActivity('insight', data.id, title, 'created', builder.name)
   redirect(`/admin/insights/${data.id}`)
 }
 
@@ -126,10 +129,13 @@ export async function restoreInsight(id: string) {
 
 /** FR-A02-02 — 삭제는 관리자만, 확인 모달 경유(호출측 ConfirmButton). */
 export async function deleteInsight(id: string) {
-  await requireAdmin()
+  const builder = await requireAdmin()
   const supabase = await createClient()
   const row = await getInsightByIdForAdmin(id)
   const { error } = await supabase.from('insights').delete().eq('id', id)
   if (error) throw new Error(error.message)
-  if (row) revalidateInsight(row.slug)
+  if (row) {
+    revalidateInsight(row.slug)
+    await logActivity('insight', id, row.title, 'deleted', builder.name)
+  }
 }
