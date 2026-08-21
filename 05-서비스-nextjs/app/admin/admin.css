@@ -43,15 +43,7 @@
 .admin-header nav a[data-nav="builders"] { --nav-dot: #8BA83D; }
 .admin-header nav a[data-nav="approvals"] { --nav-dot: var(--ink); }
 
-.admin-header nav a[data-nav="dashboard"] {
-  --nav-dot: var(--ink);
-  background: color-mix(in srgb, var(--lime) 22%, transparent);
-  border-color: color-mix(in srgb, var(--lime) 60%, transparent);
-  color: var(--ink);
-}
-.admin-header nav a[data-nav="dashboard"]:hover { background: color-mix(in srgb, var(--lime) 38%, transparent); }
-.admin-header nav a[data-nav="dashboard"].on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.admin-header nav a[data-nav="dashboard"].on::before { background: var(--lime); }
+.admin-header nav a[data-nav="dashboard"] { --nav-dot: var(--lime); color: var(--ink); font-size: 15px; font-weight: 800; }
 
 .admin-header nav a[data-nav="contact"] {
   --nav-dot: var(--lime); color: var(--ink); font-size: 15px; font-weight: 800;
