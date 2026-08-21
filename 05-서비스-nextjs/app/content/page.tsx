@@ -6,6 +6,7 @@ import ContentView from './view'
 export const metadata = pageMeta({
   title: '콘텐츠 — AI 빌더 그룹',
   path: '/content',
+  description: '영상으로 보는 AI 빌더 그룹의 실제 작업 — 유튜브 콘텐츠 모음.',
 })
 
 export default async function ContentPage() {

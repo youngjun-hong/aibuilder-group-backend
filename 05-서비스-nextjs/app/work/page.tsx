@@ -7,6 +7,7 @@ import WorkView from './view'
 export const metadata = pageMeta({
   title: 'Work — AI 빌더 그룹',
   path: '/work',
+  description: 'AI 빌더 그룹이 실제로 만든 프로젝트 사례 — 업종·기술별로 둘러보고 담당 빌더까지 확인하세요.',
 })
 
 export default async function WorkPage() {

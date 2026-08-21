@@ -6,6 +6,7 @@ import ContactView from './view'
 export const metadata = pageMeta({
   title: '프로젝트 문의 — AI 빌더 그룹',
   path: '/contact',
+  description: '프로젝트 문의를 남겨주세요. 24시간 안에 회신, 상담·견적은 무료입니다.',
 })
 
 /* 서버에서만 판정 — PLUUG_API_KEY 는 비공개 값이라 클라이언트 번들에 못 들어간다.
