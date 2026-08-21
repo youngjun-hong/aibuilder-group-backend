@@ -193,6 +193,10 @@
 .admin-stat__num small { font-size: 14px; font-weight: 700; color: var(--muted); margin-left: 4px; }
 
 .admin-dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 18px; margin-bottom: 18px; }
+/* .admin-main 최대 폭(1120px)에서 440px 트랙은 최대 2열까지만 나온다 — 패널 개수가
+   홀수면 마지막 하나가 왼쪽 칸에만 걸려 오른쪽이 빈 채로 "삐져나온" 것처럼 보인다.
+   홀수 번째이면서 마지막인 항목을 전체 폭으로 펼쳐서 항상 꽉 차게 만든다. */
+.admin-dash-grid > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .admin-dash-grid--full { grid-template-columns: 1fr; }
 .admin-chart-panel { border: 1px solid var(--line); border-radius: 20px; background: var(--paper-2); padding: 20px 22px; min-width: 0; }
 .admin-chart-panel h3 { margin: 0 0 4px; font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
