@@ -13,7 +13,7 @@ export type AgingBucket = { label: string; count: number }
 export type NameCount = { name: string; count: number }
 
 export type InternalDashboardStats = {
-  totals: { works: number; insights: number; pending: number }
+  totals: { works: number; insights: number; pending: number; buildersActive: number; buildersTotal: number }
   funnel: { works: StatusCount[]; insights: StatusCount[] }
   publishTrend: WeeklyPublishPoint[]
   pendingAging: AgingBucket[]
@@ -49,7 +49,7 @@ function countByName(rows: (string | null)[]): NameCount[] {
 export async function getInternalDashboardStats(): Promise<InternalDashboardStats> {
   const supabase = await createClient()
 
-  const [worksRes, insightsRes, videosRes, faqRes] = await Promise.all([
+  const [worksRes, insightsRes, videosRes, faqRes, buildersRes] = await Promise.all([
     supabase
       .from('works')
       .select('status, published_at, updated_at, category:categories(name), author:builders!works_created_by_fkey(name)'),
@@ -58,11 +58,13 @@ export async function getInternalDashboardStats(): Promise<InternalDashboardStat
       .select('status, published_at, updated_at, category:categories(name), author:builders!insights_author_id_fkey(name)'),
     supabase.from('videos').select('is_active, is_featured'),
     supabase.from('faq_items').select('is_active, topic:faq_topics(label)'),
+    supabase.from('builders').select('is_active'),
   ])
   if (worksRes.error) throw worksRes.error
   if (insightsRes.error) throw insightsRes.error
   if (videosRes.error) throw videosRes.error
   if (faqRes.error) throw faqRes.error
+  if (buildersRes.error) throw buildersRes.error
 
   const works = worksRes.data as unknown as {
     status: ContentStatus
@@ -80,6 +82,7 @@ export async function getInternalDashboardStats(): Promise<InternalDashboardStat
   }[]
   const videos = videosRes.data as unknown as { is_active: boolean; is_featured: boolean }[]
   const faqItems = faqRes.data as unknown as { is_active: boolean; topic: { label: string } | null }[]
+  const builders = buildersRes.data as unknown as { is_active: boolean }[]
 
   /* 발행 추이 — 최근 12주, 월요일 기준 버킷 */
   const now = new Date()
@@ -127,6 +130,8 @@ export async function getInternalDashboardStats(): Promise<InternalDashboardStat
       works: works.length,
       insights: insights.length,
       pending: works.filter(w => w.status === 'pending').length + insights.filter(a => a.status === 'pending').length,
+      buildersActive: builders.filter(b => b.is_active).length,
+      buildersTotal: builders.length,
     },
     funnel: { works: countByStatus(works), insights: countByStatus(insights) },
     publishTrend: weeks,

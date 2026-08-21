@@ -94,6 +94,7 @@ export function StatCards({ stats }: { stats: InternalDashboardStats }) {
     { label: '승인 대기', value: stats.totals.pending },
     { label: '영상 · 활성', value: stats.content.videos.active, hint: `/ ${stats.content.videos.active + stats.content.videos.inactive}` },
     { label: 'FAQ · 활성', value: stats.content.faq.active, hint: `/ ${stats.content.faq.active + stats.content.faq.inactive}` },
+    { label: 'Builders · 활성', value: stats.totals.buildersActive, hint: `/ ${stats.totals.buildersTotal}` },
   ]
   return (
     <div className="admin-stat-grid">
