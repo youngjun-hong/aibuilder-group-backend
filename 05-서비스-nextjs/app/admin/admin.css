@@ -44,6 +44,9 @@
 .admin-header nav a[data-nav="approvals"] { --nav-dot: var(--ink); }
 
 .admin-header nav a[data-nav="dashboard"] { --nav-dot: var(--lime); color: var(--ink); font-size: 15px; font-weight: 800; }
+/* 현재 페이지(.on)는 배경이 잉크색으로 바뀌는데, 위 규칙의 color:var(--ink) 가 소스 순서상
+   나중에 와서 .on 의 color:var(--paper) 를 덮어써 글씨가 안 보였다 — 명시적으로 되돌린다 */
+.admin-header nav a[data-nav="dashboard"].on { color: var(--paper); }
 
 .admin-header nav a[data-nav="contact"] {
   --nav-dot: var(--lime); color: var(--ink); font-size: 15px; font-weight: 800;
@@ -76,7 +79,9 @@
   text-transform: uppercase; letter-spacing: .12em;
 }
 .admin-table tr:last-child td { border-bottom: none; }
+.admin-table td { transition: background var(--hover), box-shadow var(--hover); }
 .admin-table tr:hover td { background: var(--paper-3); }
+.admin-table tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--lime); }
 .admin-table td.actions { display: flex; gap: 8px; }
 .admin-table a { color: var(--ink); text-decoration: none; font-weight: 700; letter-spacing: -0.01em; }
 .admin-table a:hover { text-decoration: underline; text-underline-offset: 3px; }
