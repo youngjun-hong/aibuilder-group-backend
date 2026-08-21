@@ -25,7 +25,7 @@ export async function getGoogleAccessToken(scopes: string[]): Promise<string | n
     const token = await client.authorize()
     return token.access_token ?? null
   } catch (e) {
-    console.error('[google-auth] 액세스 토큰 발급 실패', e)
+    console.warn('[google-auth] 액세스 토큰 발급 실패(연동 미완료로 처리)', e)
     return null
   }
 }

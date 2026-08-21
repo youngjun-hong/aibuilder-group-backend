@@ -85,7 +85,7 @@ export async function getGa4Overview(): Promise<Ga4Overview> {
 
     return { configured: true, daily, channels, devices, topPages }
   } catch (e) {
-    console.error('[ga4] 리포트 조회 실패', e)
+    console.warn('[ga4] 리포트 조회 실패(연동 미완료로 처리)', e)
     return { configured: false }
   }
 }

@@ -78,7 +78,9 @@ export async function getSearchConsoleOverview(): Promise<SearchConsoleOverview>
       topPages: (pageRes.rows ?? []).map(toRow),
     }
   } catch (e) {
-    console.error('[search-console] 리포트 조회 실패', e)
+    // console.error 를 쓰면 Next dev 오버레이가 "정상적으로 연동 필요 카드로 대체된" 상태를
+    // 마치 페이지가 깨진 것처럼 빨간 풀스크린 에러로 보여준다 — warn 이면 로그는 남되 안 뜬다.
+    console.warn('[search-console] 리포트 조회 실패(연동 미완료로 처리)', e)
     return { configured: false }
   }
 }
