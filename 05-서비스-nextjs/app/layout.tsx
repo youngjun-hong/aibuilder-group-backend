@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { JetBrains_Mono } from 'next/font/google'
 import { pageMeta, SITE, SITE_URL } from './_meta'
 import { GOOGLE_SITE_VERIFICATION, NAVER_SITE_VERIFICATION } from './_integrations'
+import { getSiteContentMap } from '@/lib/data/siteContent'
 import './style.css'
 import Gnb from '@/components/Gnb'
 import Footer from '@/components/Footer'
@@ -44,7 +45,12 @@ const jsonLd = {
   ],
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  /* 푸터는 전 페이지 공통이라 여기서 조회해 내려준다 — /admin/* 는 Footer.tsx 자체가
+     렌더를 건너뛰지만(pathname 체크), 조회 자체는 가볍고(anon, 컬럼 2개) 홈페이지에서
+     같은 요청 안에 또 호출될 때는 Next 의 fetch 중복제거로 한 번만 나간다. */
+  const siteContent = await getSiteContentMap()
+
   return (
     <html lang="ko" className={jetbrainsMono.variable}>
       <head>
@@ -63,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a className="skip" href="#main">본문 바로가기</a>
         <Gnb />
         {children}
-        <Footer />
+        <Footer content={siteContent} />
         <SiteFx />
         {/* 플러그인 키가 없으면 아무것도 하지 않는다 */}
         <ChannelTalk />

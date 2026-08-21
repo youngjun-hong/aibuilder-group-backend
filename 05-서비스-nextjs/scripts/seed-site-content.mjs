@@ -183,6 +183,11 @@ const ROWS = [
   ['dock.title', 'dock', '제목', '검증된 바이브 코딩'],
   ['dock.subtitle', 'dock', '부제', '무료 문의 — 부담 없이 남겨보세요'],
   ['dock.button', 'dock', '버튼', '프로젝트 문의'],
+
+  // ── 푸터(전 페이지 공통) ──
+  ['footer.tagline', 'footer', '브랜드 소개 문구', 'AI 시대에 최적화된 바이브코딩 외주 전문 그룹'],
+  ['footer.email', 'footer', '문의 이메일', 'contact@_______'],
+  ['footer.copyright', 'footer', '저작권 문구', '© 2026 AI Builder Group'],
 ]
 
 async function main() {

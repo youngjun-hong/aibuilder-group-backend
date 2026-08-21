@@ -5,10 +5,12 @@ import { usePathname } from 'next/navigation'
 
 import BrandLink from './BrandLink'
 
-export default function Footer() {
+export default function Footer({ content }: { content: Record<string, string> }) {
   const pathname = usePathname()
   /* Gnb.tsx 와 동일한 이유 — /admin/* 는 별도 셸을 쓰므로 공개 푸터를 물려받지 않는다. */
   if (pathname.startsWith('/admin')) return null
+
+  const t = (key: string) => content[key] ?? ''
 
   return (
     <footer>
@@ -16,7 +18,7 @@ export default function Footer() {
         <div className="ft6">
           <div className="ft6__brand">
             <BrandLink />
-            <p>AI 시대에 최적화된 바이브코딩 외주 전문 그룹</p>
+            <p>{t('footer.tagline')}</p>
           </div>
           <div className="col">
             <b>Service</b>
@@ -33,7 +35,7 @@ export default function Footer() {
           <div className="col">
             <b>Contact</b>
             <Link href="/contact">프로젝트 문의</Link>
-            <a href="mailto:contact@example.com">contact@_______</a>
+            <a href={`mailto:${t('footer.email')}`}>{t('footer.email')}</a>
           </div>
           <div className="col">
             <b>Social</b>
@@ -43,7 +45,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="ft__bottom">
-          <span>© 2026 AI Builder Group</span>
+          <span>{t('footer.copyright')}</span>
           <Link href="/privacy">개인정보처리방침</Link>
         </div>
       </div>

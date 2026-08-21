@@ -25,6 +25,7 @@ const SECTION_ORDER = [
   ['ribbon_b', '리본 문구 B (인사이트 ↔ 콘텐츠)'],
   ['final_cta', '최종 CTA'],
   ['dock', '플로팅 문의 바'],
+  ['footer', '푸터 (전 페이지 공통)'],
 ] as const
 
 export function sectionLabel(section: string): string {
