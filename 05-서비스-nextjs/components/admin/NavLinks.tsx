@@ -14,12 +14,12 @@ export default function NavLinks({ isAdmin }: { isAdmin: boolean }) {
     { href: '/admin/works', label: 'Work' },
     ...(isAdmin ? [{ href: '/admin/content', label: 'Content' }] : []),
     ...(isAdmin ? [{ href: '/admin/faq', label: 'FAQ' }] : []),
-    /* 문의 데이터는 우리 DB 에 없다(README §절대 규칙 — pluug 로만 감) — 그래서 내부 라우트가
-       아니라 pluug 대시보드로 바로 나가는 외부 링크다. 로그인 상태면 pluug 가 알아서
-       의뢰 목록으로 보내준다. */
-    ...(isAdmin ? [{ href: 'https://www.pluuug.com/login', label: '문의', external: true }] : []),
     ...(isAdmin ? [{ href: '/admin/builders', label: 'Builders' }] : []),
     ...(isAdmin ? [{ href: '/admin/approvals', label: '승인 대기' }] : []),
+    /* 문의 데이터는 우리 DB 에 없다(README §절대 규칙 — pluug 로만 감) — 그래서 내부 라우트가
+       아니라 pluug 대시보드로 바로 나가는 외부 링크다. 로그인 상태면 pluug 가 알아서
+       의뢰 목록으로 보내준다. 다른 내부 메뉴와 성격이 달라 맨 끝에 둔다. */
+    ...(isAdmin ? [{ href: 'https://www.pluuug.com/login', label: '문의', external: true }] : []),
   ]
   return (
     <nav>
