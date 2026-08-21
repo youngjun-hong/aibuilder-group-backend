@@ -186,7 +186,10 @@
 .admin-section-card .admin-field textarea { font-size: 13.5px; min-height: unset; }
 
 /* 대시보드 — 숫자 카드 + 차트 패널 그리드 */
-.admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+/* auto-fill 은 채워지지 않은 빈 트랙도 폭을 그대로 차지해서(카드가 5개뿐이어도 트랙은
+   6~7개 생김) 오른쪽에 빈 공간이 남는다. auto-fit 으로 바꾸면 빈 트랙이 접혀서 있는
+   카드들이 1fr 로 그 공간까지 늘어나 항상 꽉 찬다. */
+.admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
 .admin-stat { border: 1px solid var(--line); border-radius: 20px; background: var(--paper-2); padding: 16px 18px; }
 .admin-stat__label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted-2); margin: 0 0 8px; }
 .admin-stat__num { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); }
